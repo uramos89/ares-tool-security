@@ -16,7 +16,9 @@ class AuditReport:
         self.start_time = __import__('time').time()
 
     def _slugify(self, text: str) -> str:
-        return text.replace("https://", "").replace("http://", "").replace("/", "-").replace(".", "-")[:40]
+        text = text.replace("https://", "").replace("http://", "").replace("/", "-").replace(".", "-")
+        text = text.replace(" ", "-").replace("  ", "-")
+        return text[:50]
 
     def add_finding(self, severity: str, title: str, detail: str = "", fix: str = ""):
         self.findings.append({"severity": severity, "title": title, "detail": detail, "fix": fix})

@@ -105,8 +105,9 @@ class BruteForceTest:
         self.report.add_finding("ok" if found else "low", "2FA endpoint check complete")
 
 if __name__ == "__main__":
-    target = input("Target URL (https://...): ")
-    endpoint = input("Login endpoint (default: /api/login): ") or None
+    import sys
+    target = sys.argv[1] if len(sys.argv) > 1 else input("Target URL (https://...): ")
+    endpoint = sys.argv[2] if len(sys.argv) > 2 else input("Login endpoint (default: /api/login): ") or None
     tester = BruteForceTest(target, endpoint)
     report_path = tester.run()
     print(f"\n  📝 Report: {report_path}")

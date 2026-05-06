@@ -1,4 +1,4 @@
-# FullTestSec CLI Colors
+# Ares Tool Security CLI Colors
 # Usage: source lib/colors.sh
 
 # Reset

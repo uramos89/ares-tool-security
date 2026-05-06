@@ -1,4 +1,4 @@
-name: CI — FullTestSec
+name: CI — Ares Tool Security
 
 on:
   push:

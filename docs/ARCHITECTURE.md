@@ -1,17 +1,17 @@
-# FullTestSec Architecture
+# Ares Tool Security Architecture
 
 ## C4 Level 1 — Context
 ```mermaid
 graph TD
-    User[Security Auditor] -->|CLI| FTS[FullTestSec Suite]
-    FTS -->|HTTPS| Target[Target Web/Sistema]
-    FTS -->|File| Reports[Reportes .md]
+    User[Security Auditor] -->|CLI| Ares[Ares Tool Security Suite]
+    Ares -->|HTTPS| Target[Target Web/Sistema]
+    Ares -->|File| Reports[Reportes .md]
 ```
 
 ## C4 Level 2 — Containers
 ```mermaid
 graph TD
-    subgraph "FullTestSec"
+    subgraph "Ares Tool Security"
         CLI[audit.sh]
         Web[Web Audit<br/>web-audit.py]
         BF[Brute Force<br/>brute-force.py]

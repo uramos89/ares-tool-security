@@ -15,7 +15,7 @@
 
 | ID | Tarea | Estado |
 |----|-------|--------|
-| T-001 | Crear repo GitHub (fulltestsec) | ✅ |
+| T-001 | Crear repo GitHub (ares-tool-security) | ✅ |
 | T-002 | BACKLOG.md con épicas y sprints | ✅ |
 | T-003 | ADR.md con decisiones arquitectónicas | ⏳ |
 | T-004 | ARCHITECTURE.md con C4 y flujos | ⏳ |

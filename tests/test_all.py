@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Tests for FullTestSec modules"""
+"""Tests for Ares Tool Security modules"""
 import sys, os, json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from lib.reporter import AuditReport
@@ -40,7 +40,7 @@ def test_reporter_empty():
     return True
 
 if __name__ == "__main__":
-    print("\n🧪 FullTestSec Tests\n")
+    print("\n🧪 Ares Tool Security Tests\n")
     tests = [test_reporter_basic, test_reporter_score, test_reporter_empty]
     passed = sum(1 for t in tests if t())
     total = len(tests)

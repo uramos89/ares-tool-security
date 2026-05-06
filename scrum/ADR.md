@@ -1,4 +1,4 @@
-# ADR — FullTestSec
+# ADR — Ares Tool Security
 
 ## ADR-001: Bash + Python Híbrido
 **Estado:** Aceptada
@@ -20,5 +20,5 @@
 
 ## ADR-004: Escaneo No Invasivo
 **Estado:** Aceptada
-**Decisión:** FullTestSec nunca modifica el objetivo. Solo lee, prueba y reporta.
+**Decisión:** Ares Tool Security nunca modifica el objetivo. Solo lee, prueba y reporta.
 **Por qué:** Auditoría ética. El usuario decide si aplicar los fixes.

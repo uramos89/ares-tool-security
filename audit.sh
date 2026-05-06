@@ -1,5 +1,5 @@
 #!/bin/bash
-# FullTestSec — Full Testing & Security Testing Suite
+# Ares Tool Security — Full Testing & Security Testing Suite
 # Entry point interactivo
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

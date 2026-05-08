@@ -511,6 +511,12 @@ Si el `.md` ya tiene una descripción clara, úsala; si no, usa una de las frase
 #### 4.8 – Tabla CWE
 NOTA: DBES IDENTIFICAR INVESTIGANDO EN INTERNET LO QUE LOS MD REPORTAN EN LA AUDITORIA VS `https://cwe.mitre.org Y añadir la referencia real y con la vulnerabilidad asociada la tabla siguiente despliega un ejemplo De REFERENCIAS EN LA TABLA SIGUIENTE, PUEDE HABER MAS O MENOS LISTADOS SEGUN TUS HALLAZGOS esta tabla en el archivo .html fina solo apareceran los codigos CWE que esten en el reporte encontrado no toda la tabla. DEBES VALIDAR QUE LA TABLA EN EL IDIOMA ESPAÑOL ESTE CORRECTA Y NO CONTENGA INF. O COLUMNAS DE LA DE INGLES Y QUE LA DE IGLES NO CONTENGA COLUMNAS O INFORMACION EN ESPAÑOL
 
+Mapeo de Hallazgos: El generador debe escanear los títulos de los hallazgos en los 4 archivos .md (ej. "SQL Injection", "Missing HSTS", "Exposed Port").
+
+Filtrado por ID: Se utiliza un diccionario interno que vincula palabras clave con su respectivo CWE. Si la palabra clave "SQL" aparece en los hallazgos, se activa la fila CWE-89.
+
+Renderizado Condicional: En el HTML final, solo se escriben las filas de la tabla que coincidan con los IDs detectados.
+
 | CWE | Descripción ESP | Descripción ENG |
 |-----|----------------|----------------|
 | CWE-79 | Neutralización incorrecta de inputs (XSS) | Improper Neutralization of Input (XSS) |

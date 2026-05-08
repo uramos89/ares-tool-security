@@ -32,14 +32,27 @@ chmod +x audit.sh
 # Interactive audit menu
 ./audit.sh
 
-# Individual modules
+# Individual modules (generates 1 .md each)
 python3 modules/web-audit.py https://example.com
 python3 modules/brute-force.py https://example.com
 python3 modules/ddos-audit.py https://example.com
 python3 modules/vuln-scan.py https://example.com
 
-# Full scan
+# Full scan — all 4 modules, one command (generates 4 separate .md)
+./scripts/full-scan.sh https://example.com
+
+# Full scan from menu
 ./audit.sh  # Option 5
+```
+
+After running modules, generate professional HTML reports:
+
+```bash
+# Native converter (no AI needed)
+python3 lib/report-html.py reports/web-audit-*.md -o report.html
+
+# Or use FORGE_REPORT.md with ChatGPT/Claude
+# Paste the 4 .md files + docs/FORGE_REPORT.md into any AI
 ```
 
 ## 🧠 Catch-All Detection

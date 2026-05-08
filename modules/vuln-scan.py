@@ -31,17 +31,20 @@ class VulnScan:
         return self._homepage_body
 
     def run(self) -> str:
-        print(f"\n  🎯 Vulnerability Scan — {self.target}")
+        print(f"\n  {'⚠️':<4} ⚠️  Solo ejecutar en sitios con AUTORIZACIÓN explícita")
+        print(f"  {'':<4} El escaneo inyecta payloads de prueba en parámetros URL.")
         print(f"  {'─' * 50}")
         self._check_forms()
         self._check_cookies()
         self._check_cors()
+        self._check_xss()
+        self._check_sqli()
         self._check_open_redirect()
         self._check_info_disclosure()
         return self.report.generate()
 
     def _check_forms(self):
-        print(f"\n  🔍 1/5 — Form Analysis & CSRF")
+        print(f"\n  🔍 1/7 — Form Analysis & CSRF")
         status, _, body = self._fetch()
         if not body:
             return
@@ -83,7 +86,7 @@ class VulnScan:
                 fix="Implement CSRF protection (e.g., Django CSRF middleware, Rails authenticity_token)")
 
     def _check_cookies(self):
-        print(f"\n  🔍 2/5 — Cookie Security Audit")
+        print(f"\n  🔍 2/7 — Cookie Security Audit")
         status, headers, _ = self._fetch()
         if not status:
             return
@@ -122,7 +125,7 @@ class VulnScan:
                     fix="Set SameSite=Lax or SameSite=Strict to prevent CSRF via cookies")
 
     def _check_cors(self):
-        print(f"\n  🔍 3/5 — CORS Misconfiguration")
+        print(f"\n  🔍 3/7 — CORS Misconfiguration")
         try:
             req = Request(f"{self.target}/")
             req.add_header("Origin", "https://evil.com")
@@ -149,8 +152,132 @@ class VulnScan:
             print(f"    {'✅':<4} CORS: not set (secure default)")
             self.report.add_finding("ok", "No CORS header (secure default)")
 
+    def _check_xss(self):
+        print(f"\n  🔍 4/7 — Reflected XSS Test")
+        status, _, body = self._fetch()
+        if not body:
+            return
+
+        # Find URL parameters (links with ?param=value)
+        params = re.findall(r'\?([^"\'\s>]+)', body)
+        param_names = set()
+        for p in params:
+            for kv in p.split('&'):
+                if '=' in kv:
+                    param_names.add(kv.split('=')[0])
+
+        xss_payloads = [
+            '<script>alert(1)</script>',
+            '"<script>alert(1)</script>',
+            '\'><script>alert(1)</script>',
+            '<img src=x onerror=alert(1)>',
+            '"><img src=x onerror=alert(1)>',
+            '<svg onload=alert(1)>',
+            'javascript:alert(1)',
+        ]
+
+        payload_char = '<>"\'()'  # Characters that XSS payloads contain
+
+        if not param_names:
+            # Try common params on the URL
+            param_names = {'q', 's', 'search', 'query', 'id', 'page', 'term', 'keyword', 'lang'}
+            print(f"    {'':<4} Testing {len(param_names)} common parameters...")
+        else:
+            print(f"    {'':<4} Found {len(param_names)} parameter(s): {', '.join(list(param_names)[:6])}")
+
+        reflected = []
+        for param in list(param_names)[:8]:  # Limit to 8 params
+            for payload in xss_payloads[:3]:  # 3 payloads per param
+                try:
+                    test_url = f"{self.target}/?{param}={__import__('urllib').parse.quote(payload)}"
+                    req = Request(test_url)
+                    with urlopen(req, timeout=10) as r:
+                        resp_body = r.read().decode("utf-8", errors="ignore")
+                        # Check if payload chars appear unescaped in response
+                        if any(c in resp_body for c in ['<script>alert', 'onerror=alert', 'onload=alert']):
+                            reflected.append(param)
+                            print(f"    {'❌':<4} Possible XSS via ?{param}= (payload reflected unescaped)")
+                            self.report.add_finding("critical", f"Reflected XSS via parameter '{param}'",
+                                detail=f"Payload '{payload[:30]}' reflected in response without sanitization",
+                                fix="Sanitize all user input with context-aware encoding. Use CSP headers.")
+                            break
+                except Exception:
+                    pass
+            if param in reflected:
+                continue
+
+        if not reflected:
+            print(f"    {'✅':<4} No obvious reflected XSS detected (tested {len(param_names)} params × 3 payloads)")
+            self.report.add_finding("ok", "No reflected XSS found in tested parameters")
+
+    def _check_sqli(self):
+        print(f"\n  🔍 5/7 — SQL Injection Test")
+        status, _, body = self._fetch()
+        if not body:
+            return
+
+        # Find URL parameters
+        params = re.findall(r'\?([^"\'\s>]+)', body)
+        param_names = set()
+        for p in params:
+            for kv in p.split('&'):
+                if '=' in kv:
+                    param_names.add(kv.split('=')[0])
+
+        sqli_payloads = [
+            ("'", "Single quote"),
+            ("\"", "Double quote"),
+            ("' OR '1'='1", "Basic auth bypass"),
+            ("' OR 1=1--", "OR 1=1 comment"),
+            ("' UNION SELECT NULL--", "UNION NULL"),
+            ("'; DROP TABLE users--", "DROP TABLE"),
+            ("' AND 1=1--", "AND true"),
+            ("' AND 1=2--", "AND false (blind)"),
+        ]
+
+        sqli_error_signs = [
+            "sql", "mysql", "sqlite", "postgresql", "ora-", "ora ",
+            "syntax error", "unclosed quotation", "incorrect syntax",
+            "warning: mysql", "driver", "odbc", "db2",
+            "you have an error", "column count", "unexpected token",
+            "division by zero", "mysql_fetch", "pg_", "sqlsrv",
+        ]
+
+        if not param_names:
+            param_names = {'id', 'page', 'cat', 'product', 'user', 'order', 'num'}
+            print(f"    {'':<4} Testing {len(param_names)} common parameters...")
+        else:
+            print(f"    {'':<4} Found {len(param_names)} parameter(s): {', '.join(list(param_names)[:6])}")
+
+        vulnerable = []
+        for param in list(param_names)[:8]:
+            for payload, ptype in sqli_payloads[:4]:  # 4 payloads per param
+                try:
+                    encoded = __import__('urllib').parse.quote(payload)
+                    test_url = f"{self.target}/?{param}={encoded}"
+                    req = Request(test_url)
+                    with urlopen(req, timeout=10) as r:
+                        resp_body = r.read().decode("utf-8", errors="ignore").lower()
+                        # Check for SQL error messages
+                        for sign in sqli_error_signs:
+                            if sign in resp_body:
+                                vulnerable.append(param)
+                                print(f"    {'❌':<4} Possible SQLi via ?{param}= ('{ptype}' triggered: '{sign}')")
+                                self.report.add_finding("critical", f"SQL Injection via parameter '{param}'",
+                                    detail=f"Payload '{ptype}' triggered error pattern '{sign}'",
+                                    fix="Use parameterized queries (prepared statements). Never concatenate user input into SQL.")
+                                break
+                        if param in vulnerable:
+                            break
+                except Exception:
+                    pass
+
+        if not vulnerable:
+            print(f"    {'✅':<4} No obvious SQL injection detected (tested {len(param_names)} params × 4 payloads)")
+            self.report.add_finding("ok", "No SQL injection found in tested parameters")
+
     def _check_open_redirect(self):
-        print(f"\n  🔍 4/5 — Open Redirect Check")
+        print(f"\n  🔍 6/7 — Open Redirect Check")
         # Check common redirect parameters
         redirect_params = ["redirect", "url", "next", "return", "goto", "target", "r", "u", "to", "dest", "destination"]
         found_redirects = 0
@@ -193,7 +320,7 @@ class VulnScan:
             self.report.add_finding("ok", "No open redirects found")
 
     def _check_info_disclosure(self):
-        print(f"\n  🔍 5/5 — Information Disclosure")
+        print(f"\n  🔍 7/7 — Information Disclosure")
         status, headers, body = self._fetch()
         if not body:
             return

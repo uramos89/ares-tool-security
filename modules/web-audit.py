@@ -88,15 +88,16 @@ class WebAudit:
         return self._homepage_headers or {}
 
     def _is_catch_all(self, body):
-        if not body:
+        if not body or len(body) < 100:
             return False
         homepage = self._get_homepage()
-        if not homepage:
-            return False
-        if len(body) == len(homepage) and len(body) > 100:
+        # Method 1: Compare with homepage length (if homepage was fetched)
+        if homepage and len(homepage) == len(body):
             return True
-        if len(body) > 200 and len(homepage) > 200:
-            return body[:200] == homepage[:200]
+        # Method 2: Compare first 300 chars (catches dynamic content like timestamps)
+        if homepage and len(homepage) > 300 and len(body) > 300:
+            # Use 100-300 range to skip dynamic prefix (session IDs, etc.)
+            return body[100:300] == homepage[100:300]
         return False
 
     # ─── Run All ───

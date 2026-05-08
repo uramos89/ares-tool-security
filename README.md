@@ -39,7 +39,11 @@ python3 modules/ddos-audit.py https://example.com
 python3 modules/vuln-scan.py https://example.com
 
 # Full scan — all 4 modules, one command (generates 4 separate .md)
-./scripts/full-scan.sh https://example.com
+# On Linux / Git Bash:
+bash scripts/full-scan.sh https://example.com
+
+# On Windows PowerShell:
+powershell -ExecutionPolicy Bypass -File scripts/full-scan.ps1 https://example.com
 
 # Full scan from menu
 ./audit.sh  # Option 5

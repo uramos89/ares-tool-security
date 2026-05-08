@@ -38,12 +38,8 @@ python3 modules/brute-force.py https://example.com
 python3 modules/ddos-audit.py https://example.com
 python3 modules/vuln-scan.py https://example.com
 
-# Full scan — all 4 modules, one command (generates 4 separate .md)
-# On Linux / Git Bash:
-bash scripts/full-scan.sh https://example.com
-
-# On Windows PowerShell:
-powershell -ExecutionPolicy Bypass -File scripts/full-scan.ps1 https://example.com
+# Full scan — all 4 modules, one command (cross-platform, generates 4 separate .md)
+python3 scripts/full-scan.py https://example.com
 
 # Full scan from menu
 ./audit.sh  # Option 5
@@ -120,6 +116,8 @@ ares-tool-security/
 │   └── colors.sh       ← Terminal colors
 ├── tests/              ← Unit tests
 ├── reports/            ← Generated reports (.md / .html)
+├── scripts/             ← Utility scripts
+│   └── full-scan.py     ← Run all 4 modules: python3 scripts/full-scan.py <url>
 ├── scrum/              ← Agile methodology docs
 └── docs/
     └── FORGE_REPORT.md ← Universal AI prompt for HTML report generation

@@ -325,9 +325,11 @@ Each finding must display (ALL bilingual):
 - Numbered list with most urgent corrections first (critical, then high)
 - **EVERY item must have ESP + ENG versions**
 
-### 5. Technical References Table
-- Columns: Code | Description ESP/ENG | Source (MITRE link)
-- Badges: OWASP Top 10, ISO 27001, NIST SP 800-53, PCI DSS v4.0
+### 5. Technical References Table — MANDATORY: ALL ROWS
+- **Must include ALL CWE rows from the mapping table above.** Do NOT filter by findings present.
+- Even if a CWE has zero findings in this audit, include it as a reference (the table is educational)
+- Columns: Code | Description ESP/ENG | Source (MITRE link) — ALL bilingual
+- Minimum 15 rows. Badges: OWASP Top 10, ISO 27001, NIST SP 800-53, PCI DSS v4.0
 - ALL headers and descriptions bilingual
 
 ### 6. Footer (ALL BILINGUAL)

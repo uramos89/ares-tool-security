@@ -12,8 +12,10 @@ import sys, os, socket, ssl, base64, re, json, time
 from datetime import datetime
 from urllib.request import Request, urlopen
 from urllib.error import URLError
+from urllib.parse import quote
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from lib.reporter import AuditReport
+from lib.vulndb import lookup_cves, detect_os, extract_server_version, get_cve_reference
 
 COMMON_CREDS = [
     ("root", "root"), ("root", "admin"), ("root", "toor"),
@@ -681,6 +683,7 @@ def main():
             custom_ports = [int(p.strip()) for p in sys.argv[idx+1].split(",")]
 
     ports_to_check = custom_ports if custom_ports else sorted(SERVICE_HANDLERS.keys())
+    banners_collected = {}
 
     print(f"\n  {'='*50}")
     print(f"  Scanning {len(ports_to_check)} known service ports...")
@@ -697,23 +700,38 @@ def main():
                         detail = rest[0] if rest else ""
                         fix = rest[1] if len(rest) > 1 else ""
                         report.add_finding(sev, title, detail, fix)
+                        if any(title.startswith(x) for x in ["HTTP Server:", "SSH banner:", "FTP banner:"]):
+                            banners_collected[port] = {"server_banner": title.split(":",1)[1].strip()}
                 except Exception as e:
                     print(f"    Error: {e}")
-                    report.add_finding("medium", f"Service on port {port} errored during check", str(e)[:100])
+                    report.add_finding("medium", f"Service on port {port} errored", str(e)[:100])
+            else:
+                print(f"    ℹ️ No handler for port {port}")
 
-            # 🎯 Run exploitation PoC
             ssl_mode = port in (443, 8443, 8443)
             for sev, title, *rest in run_exploits(host, port, ssl_mode):
                 report.add_finding(sev, title, rest[0] if rest else "", rest[1] if len(rest) > 1 else "")
-            
-            else:
-                print(f"    ℹ️ No handler for port {port}")
-                report.add_finding("low", f"Unknown service on port {port}", "", "Investigate manually")
         else:
-            if not custom_ports:
-                pass  # Silent for default scan
-            else:
+            if custom_ports:
                 print(f"  Port {port}: closed")
+
+    print(f"\n  {'='*50}")
+    print(f"  🔍 CVE Lookup by banner...")
+    print(f"  {'='*50}")
+    for port, info in banners_collected.items():
+        srv_type, ver = extract_server_version(info["server_banner"])
+        os_name = detect_os(info["server_banner"])
+        print(f"\n  [{port}] {srv_type} {ver} ({os_name})")
+        cves = lookup_cves(srv_type, ver, os_name, [port])
+        if cves:
+            for cve_id, title, desc, sev, test_hint, fix in cves:
+                print(f"    {cve_id} ({sev})")
+                ref = get_cve_reference(cve_id)
+                report.add_finding(sev, f"{cve_id}: {title}", f"{desc}\nRef: {ref['url']}", fix)
+        else:
+            print(f"    No CVEs on file")
+    if not banners_collected:
+        print(f"    No banners captured")
 
     print(f"\n  {'='*50}")
     print(f"  📝 Report: {report.generate()}")

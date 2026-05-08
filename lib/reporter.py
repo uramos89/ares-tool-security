@@ -30,7 +30,8 @@ class AuditReport:
         report += self._build_findings() + "\n\n"
         report += self._build_footer()
         os.makedirs("reports", exist_ok=True)
-        with open(self.filename, "w") as f:
+        # Fix: force UTF-8 encoding to support emojis on Windows (cp1252 compatibility)
+        with open(self.filename, "w", encoding="utf-8") as f:
             f.write(report)
         return self.filename
 

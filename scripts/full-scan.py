@@ -23,6 +23,7 @@ def main():
         ("brute-force",  "🔨 Brute Force"),
         ("ddos-audit",   "🛡️  DDoS Audit"),
         ("vuln-scan",    "🎯 Vuln Scan"),
+        ("harpoon",      "🎯 Harpoon PoC"),
     ]
 
     os_name = platform.system()

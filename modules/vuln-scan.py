@@ -2,7 +2,7 @@
 """Module: Vulnerability Scanner — XSS, SQLi, Open Redirect, Form Analysis."""
 import sys, os, html
 from urllib.request import Request, urlopen
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote
 from urllib.error import URLError
 import re
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -31,8 +31,8 @@ class VulnScan:
         return self._homepage_body
 
     def run(self) -> str:
-        print(f"\n  {'⚠️':<4} ⚠️  Solo ejecutar en sitios con AUTORIZACIÓN explícita")
-        print(f"  {'':<4} El escaneo inyecta payloads de prueba en parámetros URL.")
+        print(f"\n  [AVISO] Solo ejecutar en sitios con AUTORIZACION explicita")
+        print(f"  El escaneo inyecta payloads de prueba en parametros URL.")
         print(f"  {'─' * 50}")
         self._check_forms()
         self._check_cookies()
@@ -189,19 +189,19 @@ class VulnScan:
         for param in list(param_names)[:8]:  # Limit to 8 params
             for payload in xss_payloads[:3]:  # 3 payloads per param
                 try:
-                    test_url = f"{self.target}/?{param}={__import__('urllib').parse.quote(payload)}"
+                    test_url = f"{self.target}/?{param}={quote(payload)}"
                     req = Request(test_url)
                     with urlopen(req, timeout=10) as r:
                         resp_body = r.read().decode("utf-8", errors="ignore")
                         # Check if payload chars appear unescaped in response
                         if any(c in resp_body for c in ['<script>alert', 'onerror=alert', 'onload=alert']):
                             reflected.append(param)
-                            print(f"    {'❌':<4} Possible XSS via ?{param}= (payload reflected unescaped)")
+                            print(f"    [XSS] Possible XSS via ?{param}= (payload reflected unescaped)")
                             self.report.add_finding("critical", f"Reflected XSS via parameter '{param}'",
                                 detail=f"Payload '{payload[:30]}' reflected in response without sanitization",
                                 fix="Sanitize all user input with context-aware encoding. Use CSP headers.")
                             break
-                except Exception:
+                except Exception as e:
                     pass
             if param in reflected:
                 continue
@@ -253,8 +253,7 @@ class VulnScan:
         for param in list(param_names)[:8]:
             for payload, ptype in sqli_payloads[:4]:  # 4 payloads per param
                 try:
-                    encoded = __import__('urllib').parse.quote(payload)
-                    test_url = f"{self.target}/?{param}={encoded}"
+                    test_url = f"{self.target}/?{param}={quote(payload)}"
                     req = Request(test_url)
                     with urlopen(req, timeout=10) as r:
                         resp_body = r.read().decode("utf-8", errors="ignore").lower()

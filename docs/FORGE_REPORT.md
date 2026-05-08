@@ -25,12 +25,16 @@ Generate a `audit-report-<domain>.html` file with:
 
 ## 📥 Input
 
-You will receive **2 Markdown files**:
+You will receive **up to 4 Markdown files** (one per module executed):
 
-1. `web-audit-<domain>-<date>.md` — Full web audit (20 checks)
-2. `vuln-scan-<domain>-<date>.md` — Vulnerability scan
+1. `web-audit-<domain>-<date>.md` — Full web audit (20 checks: SSL, headers, stack, dir busting, forms, cookies, CORS, XSS, SQLi, DNS, ports, etc.)
+2. `brute-force-<domain>-<date>.md` — Brute force test (rate limiting, lockout, 2FA detection)
+3. `ddos-audit-<domain>-<date>.md` — DDoS resilience (WAF/CDN detection, concurrent load, timeout)
+4. `vuln-scan-<domain>-<date>.md` — Vulnerability scan (CSRF, XSS, SQLi, CORS, open redirect, info disclosure)
 
-Both follow the standard Ares Tool Security format: headings with `# `, findings with `**N. Title**`, severity with emojis 🔴🟠🟡🔵✅, and sections `### 🔴 CRITICAL`, `### 🟠 HIGH`, etc.
+All follow the standard Ares Tool Security format: headings with `# `, findings with `**N. Title**`, severity with emojis 🔴🟠🟡🔵✅, and sections `### 🔴 CRITICAL`, `### 🟠 HIGH`, etc.
+
+Consolidate findings from ALL available .md files into a single HTML report. Merge duplicate findings and combine severity counts across modules.
 
 ---
 
@@ -352,12 +356,17 @@ The final HTML should follow this structure:
 
 ## 🚀 Workflow
 
-1. User runs Ares Tool Security and gets 2 `.md` files in `reports/`
+1. User runs Ares Tool Security modules and gets `.md` files in `reports/`:
+   ```bash
+   python3 modules/web-audit.py https://example.com
+   python3 modules/brute-force.py https://example.com
+   python3 modules/ddos-audit.py https://example.com
+   python3 modules/vuln-scan.py https://example.com
+   ```
 2. User provides you (AI model) with:
    - This file (`FORGE_REPORT.md`) as instructions
-   - The content of `web-audit-<domain>.md`
-   - The content of `vuln-scan-<domain>.md`
-3. You generate a single `audit-report-<domain>.html` file
+   - The content of ALL available `.md` files from `reports/`
+3. You generate a single `audit-report-<domain>.html` file consolidating ALL findings
 4. User opens the `.html` in their browser — professional bilingual report ready
 
 ---

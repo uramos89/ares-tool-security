@@ -1,31 +1,31 @@
-# ⚔️ Ares Forge Report — Prompt Universal para Generación de Reportes HTML
+# ⚔️ Ares Forge Report — Universal Prompt for HTML Report Generation
 
-> **Propósito:** Este archivo contiene las instrucciones para que cualquier modelo de IA (Claude, ChatGPT, Gemini, Copilot, etc.) genere un **reporte HTML profesional** a partir de los archivos `.md` producidos por **Ares Tool Security**.
+> **Purpose:** This file contains instructions for any AI model (Claude, ChatGPT, Gemini, Copilot, etc.) to generate a **professional HTML report** from the `.md` files produced by **Ares Tool Security**.
 >
-> **Uso:** Entrega al modelo de IA los 2 archivos `.md` de auditoría + el contenido de este archivo como instrucción.
+> **Usage:** Provide the AI with the 2 audit `.md` files + this file's content as instructions.
 
 ---
 
-## 🎯 Objetivo
+## 🎯 Objective
 
-Generar un archivo `reporte-auditoria.html` con:
+Generate a `audit-report.html` file with:
 
-- **Tema oscuro profesional** (slate/dark blue: `#0f172a`, cards: `#1e293b`, bordes: `#334155`)
-- **Interruptor de idioma** ESP 🇪🇸 / ENG 🇬🇧 funcional (cambia todo el contenido sin recargar)
-- **Animaciones CSS** suaves (fade in, slide up, score circle pulse, hover en cards)
-- **Score circle animado** con efecto de llenado circular (CSS radial-gradient o SVG circle con stroke-dashoffset animado)
-- **Responsive** (clamp en fonts, grid auto-fit, media query para móviles)
-- **Badges** por severidad con colores distintivos
-- **CWE + OWASP + ISO 27001** referencias por cada hallazgo
-- **Tabla de referencias técnicas** con links a MITRE
-- **Recomendaciones** priorizadas
-- **Footer legal** auditable
+- **Professional dark theme** (slate/dark blue: `#0f172a`, cards: `#1e293b`, borders: `#334155`)
+- **Language toggle** ESP 🇪🇸 / ENG 🇬🇧 functional (switches all content without reload)
+- **CSS animations** (fade in, slide up, score circle pulse, card hover)
+- **Animated score circle** with circular fill effect (CSS radial-gradient or SVG circle with animated stroke-dashoffset)
+- **Responsive design** (clamp fonts, auto-fit grid, mobile media queries)
+- **Severity badges** with distinctive colors
+- **CWE + OWASP + ISO 27001** references per finding
+- **Technical references table** with MITRE links
+- **Prioritized recommendations**
+- **Auditable legal footer**
 
 ---
 
 ## 📥 Input
 
-Se te entregarán **2 archivos Markdown**:
+You will receive **2 Markdown files**:
 
 1. `web-audit-<dominio>-<fecha>.md` — Auditoría web completa (20 checks)
 2. `vuln-scan-<dominio>-<fecha>.md` — Escaneo de vulnerabilidades

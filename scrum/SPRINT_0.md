@@ -1,38 +1,38 @@
-# Sprint 0 — Setup + Scrum + Documentación
+# Sprint 0 — Setup + Scrum + Documentation
 
-**Período:** 2026-05-06  
-**Foco:** Fundación del proyecto  
+**Period:** 2026-05-06
+**Focus:** Project foundation
 **Scrum Master:** Alicia ✨ | **PO:** Ulises Ramos
 
-## Objetivos
-- ✅ Repositorio creado en GitHub
-- ✅ Backlog, ADRs, sprints planificados
-- ✅ Entry point CLI interactivo
-- ✅ Módulo de reportes .md
+## Goals
+- ✅ GitHub repository created
+- ✅ Backlog, ADRs, sprints planned
+- ✅ Interactive CLI entry point
+- ✅ Report module (.md generator)
 - ✅ README, CHANGELOG, .gitignore
 
-## Tareas
+## Tasks
 
-| ID | Tarea | Estado |
-|----|-------|--------|
-| T-001 | Crear repo GitHub (ares-tool-security) | ✅ |
-| T-002 | BACKLOG.md con épicas y sprints | ✅ |
-| T-003 | ADR.md con decisiones arquitectónicas | ⏳ |
-| T-004 | ARCHITECTURE.md con C4 y flujos | ⏳ |
-| T-005 | audit.sh — Entry point interactivo | ⏳ |
-| T-006 | lib/reporter.sh — Generador de reportes .md | ⏳ |
-| T-007 | lib/colors.sh — UI con colores | ⏳ |
-| T-008 | Module 12: Web Audit (Python) | ⏳ |
-| T-009 | Module 13: Brute Force Testing (Python) | ⏳ |
-| T-010 | README.md, CHANGELOG.md, .gitignore | ⏳ |
-| T-011 | CI/CD + Tests | ⏳ |
-| T-012 | Push a GitHub + tag v0.1.0 | ⏳ |
+| ID | Task | Status |
+|----|------|--------|
+| T-001 | Create GitHub repo (ares-tool-security) | ✅ |
+| T-002 | BACKLOG.md with epics and sprints | ✅ |
+| T-003 | ADR.md with architectural decisions | ✅ |
+| T-004 | ARCHITECTURE.md with C4 diagrams and flows | ✅ |
+| T-005 | audit.sh — Interactive entry point | ✅ |
+| T-006 | lib/reporter.py — .md report generator | ✅ |
+| T-007 | lib/colors.sh — Colored UI | ✅ |
+| T-008 | Module: Web Audit (Python) | ✅ |
+| T-009 | Module: Brute Force Testing (Python) | ✅ |
+| T-010 | README.md, CHANGELOG.md, .gitignore | ✅ |
+| T-011 | CI/CD + Tests | ✅ |
+| T-012 | Push to GitHub + tag v0.1.0 | ✅ |
 
 ## Definition of Done
-- [x] Repo en GitHub
-- [x] Scrum docs completos
-- [ ] Código funcional (CORE + Web + BruteForce)
-- [ ] Tests unitarios
-- [ ] Reportes .md generados correctamente
-- [ ] README con instrucciones de uso
-- [ ] Push a main con tags
+- [x] Repo on GitHub
+- [x] Complete Scrum docs
+- [x] Working code (Core + Web + BruteForce)
+- [x] Unit tests
+- [x] .md reports generated correctly
+- [x] README with usage instructions
+- [x] Push to main with tags

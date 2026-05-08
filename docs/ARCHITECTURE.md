@@ -4,8 +4,8 @@
 ```mermaid
 graph TD
     User[Security Auditor] -->|CLI| Ares[Ares Tool Security Suite]
-    Ares -->|HTTPS| Target[Target Web/Sistema]
-    Ares -->|File| Reports[Reportes .md]
+    Ares -->|HTTPS| Target[Target Web / System]
+    Ares -->|File| Reports[Report .md Files]
 ```
 
 ## C4 Level 2 — Containers
@@ -25,14 +25,25 @@ graph TD
     BF -->|HTTPS| Target
 ```
 
-## Flujo de un Módulo
+## Module Execution Flow
 ```
-audit.sh → Menú interactivo
-  ├── Usuario selecciona módulo
-  ├── Usuario ingresa target
-  ├── audit.sh ejecuta python3 modules/<module>.py <target>
-  │     ├── Escanea/Prueba el target
-  │     ├── Reporta findings en terminal
-  │     └── Genera reporte .md en reports/
-  └── Vuelve al menú principal
+audit.sh → Interactive menu
+  ├── User selects module
+  ├── User enters target
+  ├── audit.sh runs python3 modules/<module>.py <target>
+  │     ├── Scans/Tests the target
+  │     ├── Reports findings in terminal
+  │     └── Generates .md report in reports/
+  └── Returns to main menu
+```
+
+## Report Generation Flow
+```
+Module (.py) → AuditReport class (lib/reporter.py) → .md file (reports/)
+                                                           │
+                    ┌──────────────────────────────────────┤
+                    │                                      │
+                    ▼                                      ▼
+      lib/report-html.py (.md → .html)        docs/FORGE_REPORT.md
+      (native converter)                       (AI prompt for HTML)
 ```

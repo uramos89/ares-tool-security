@@ -284,16 +284,17 @@ Use this table to assign references to each finding type:
 
 ---
 
-> ⚠️ CRITICAL RULE
+> ⚠️ CRITICAL RULES
 > 
-> **EVERY visible text element MUST be bilingual (ESP + ENG).**
-> Use class="lang-es" for Spanish and class="lang-en lang-hidden" for English on EVERY piece of text:
-> - Finding titles, descriptions, fix labels
-> - Recommendations, table headers, footer
-> - Risk labels, score labels, section titles
-> - Stat box labels, badge labels
+> **RULE 1 — SCORE:** Parse the ACTUAL score from each .md file. Find `**Security Score:** (\d+)/100` in the source. DO NOT hardcode 0. If multiple .md files, use the LOWEST score (most conservative).
 > 
-> If a section only has Spanish or only English text, the report is INCOMPLETE.
+> **RULE 2 — ALL FINDINGS:** Include EVERY finding from ALL .md files. Do NOT filter, skip, or summarize. If the .md has 41 findings, the HTML must show 41 findings. Missing findings = FAIL.
+> 
+> **RULE 3 — BILINGUAL:** EVERY visible text element MUST have both ESP and ENG versions. Test by clicking the language toggle. If any text stays visible in the wrong language, the report is INCOMPLETE.
+> 
+> **RULE 4 — CATCH-ALL:** If the .md contains a finding "Catch-all routing detected", mark all HTTP 200 path findings as FALSE POSITIVES with a note: "(catch-all routing — false positive)". Do NOT remove them from the list, but add the note.
+> 
+> **RULE 5 — NO DUPLICATES:** If the same finding appears in multiple .md files (e.g., "No WAF" in both web-audit and ddos-audit), show it ONCE with a note "(detected by N modules)".
 
 ## 📝 Report Structure (ALL SECTIONS BILINGUAL)
 
@@ -369,15 +370,33 @@ The Ares `.md` report follows this format:
    - *Fix:* `add_header Content-Security-Policy "..."`
 ```
 
-Parsing rules:
-- **Score:** Extract from `**Security Score:** (\d+)/100`
+## 🔍 MANDATORY PARSING RULES (Follow exactly)
+
+### Score Extraction
+- Find `**Security Score:** (\d+)/100` in each .md file
+- If multiple .md files, use the **lowest** score as the global score
+- Example: web-audit=15, vuln-scan=20, ddos=85, brute=95 → **use 15**
+- The score circle and SVG animation MUST use this value (NOT 0)
+
+### Finding Extraction
+- **Critical:** Every line under `### 🔴 CRITICAL` until next `###`
+- **High:** Every line under `### 🟠 HIGH` until next `###`
+- **Medium:** Every line under `### 🟡 MEDIUM` until next `###`
+- **Low:** Every line under `### 🔵 LOW` until next `###`
+- **Passed:** Under `### ✅ PASS`
+- Each finding format: `**N. Title**` + optional `Detail:` + optional `Fix:`
+- **MUST include ALL findings. Do NOT skip any.**
+- **Merge duplicates** across modules (same title) — show once with "(detected by X modules)"
+
+### Catch-All Handling
+- If `"Catch-all routing"` appears in any finding's title or detail:
+  - All findings with "HTTP 200" in detail are FALSE POSITIVES
+  - Add a badge/note: `⚠️ False positive (catch-all routing)`
+  - But still SHOW them in the list (with the note)
+
+### Target Info
 - **Target:** Extract from `` **Target:** `(.+)` ``
-- **Critical findings:** Under `### 🔴 CRITICAL`
-- **High findings:** Under `### 🟠 HIGH`
-- **Medium findings:** Under `### 🟡 MEDIUM`
-- **Low findings:** Under `### 🔵 LOW`
-- **Passed checks:** Under `### ✅ PASS`
-- Each finding: `**N. Title**` + `Detail:` + `Fix:`
+- **Date:** Extract from `**Date:** (.+)`
 
 ---
 

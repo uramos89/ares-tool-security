@@ -1,25 +1,25 @@
 # ⚔️ Ares Forge Report — Universal Prompt for HTML Report Generation
 
-> **Purpose:** This file contains instructions for any AI model (Claude, ChatGPT, Gemini, Copilot, etc.) to generate a **professional HTML report** from the `.md` files produced by **Ares Tool Security**.
+> **Purpose:** This file contains instructions for any AI model (Claude, ChatGPT, Gemini, Copilot, etc.) to generate a **professional bilingual HTML report** from the `.md` files produced by **Ares Tool Security**.
 >
-> **Usage:** Provide the AI with the 2 audit `.md` files + this file's content as instructions.
+> **Usage:** Provide the AI with the 2 audit `.md` files + this file's content as instructions. The AI will output a single `.html` file.
 
 ---
 
 ## 🎯 Objective
 
-Generate a `audit-report.html` file with:
+Generate a `audit-report-<domain>.html` file with:
 
 - **Professional dark theme** (slate/dark blue: `#0f172a`, cards: `#1e293b`, borders: `#334155`)
-- **Language toggle** ESP 🇪🇸 / ENG 🇬🇧 functional (switches all content without reload)
-- **CSS animations** (fade in, slide up, score circle pulse, card hover)
-- **Animated score circle** with circular fill effect (CSS radial-gradient or SVG circle with animated stroke-dashoffset)
-- **Responsive design** (clamp fonts, auto-fit grid, mobile media queries)
-- **Severity badges** with distinctive colors
-- **CWE + OWASP + ISO 27001** references per finding
-- **Technical references table** with MITRE links
-- **Prioritized recommendations**
-- **Auditable legal footer**
+- **Bilingual language toggle** ESP 🇪🇸 / ENG 🇬🇧 — switches all content without page reload
+- **CSS animations** (fadeInUp, score circle pulse, card hover elevation)
+- **Animated score circle** with circular fill effect (CSS radial-gradient or SVG circle with stroke-dashoffset animation)
+- **Responsive design** (clamp fonts, auto-fit grid, mobile media queries down to 320px)
+- **Severity badges** with distinctive colors for each level
+- **CWE + OWASP + ISO 27001** references auto-mapped per finding
+- **Technical references table** with links to MITRE
+- **Prioritized recommendations** (critical and high first)
+- **Auditable legal footer** with AI agent signature
 
 ---
 
@@ -27,16 +27,16 @@ Generate a `audit-report.html` file with:
 
 You will receive **2 Markdown files**:
 
-1. `web-audit-<dominio>-<fecha>.md` — Auditoría web completa (20 checks)
-2. `vuln-scan-<dominio>-<fecha>.md` — Escaneo de vulnerabilidades
+1. `web-audit-<domain>-<date>.md` — Full web audit (20 checks)
+2. `vuln-scan-<domain>-<date>.md` — Vulnerability scan
 
-Ambos siguen el formato estándar de Ares Tool Security (encabezados con `# `, hallazgos con `**N. Título**`, severidad con emojis 🔴🟠🟡🔵✅, y secciones `### 🔴 CRITICAL`, `### 🟠 HIGH`, etc.).
+Both follow the standard Ares Tool Security format: headings with `# `, findings with `**N. Title**`, severity with emojis 🔴🟠🟡🔵✅, and sections `### 🔴 CRITICAL`, `### 🟠 HIGH`, etc.
 
 ---
 
-## 📋 Especificaciones Técnicas del HTML
+## 📋 HTML Technical Specifications
 
-### Estructura del Documento
+### Document Structure
 
 ```html
 <!DOCTYPE html>
@@ -61,10 +61,10 @@ Ambos siguen el formato estándar de Ares Tool Security (encabezados con `# `, h
 </html>
 ```
 
-### Estilos Requeridos
+### CSS Palette
 
 ```css
-/* Paleta */
+/* Palette */
 body    { background: #0f172a; color: #e2e8f0; }
 .card   { background: #1e293b; border: 1px solid #334155; }
 .stat-box { background: #0f172a; }
@@ -82,23 +82,23 @@ body    { background: #0f172a; color: #e2e8f0; }
   font-size: clamp(1.8em, 5vw, 2.5em);
   font-weight: 700;
 }
-/* Color según score: <50: #dc2626, 50-79: #d97706, >=80: #16a34a */
+/* Score color: <50: #dc2626, 50-79: #d97706, >=80: #16a34a */
 
-/* Severidad colores */
+/* Severity colors */
 .critical: #dc2626 | .high: #ea580c | .medium: #d97706
 .low: #2563eb | .pass: #16a34a
 
-/* Finding cards border-left + background con opacidad */
-.finding-{severidad} {
+/* Finding cards: colored left border + translucent background */
+.finding-{severity} {
   border-left: 4px solid <color>;
   background: rgba(<color_rgb>, 0.15);
 }
 ```
 
-### Animaciones CSS
+### CSS Animations
 
 ```css
-/* Fade in de cards */
+/* Card fadeInUp stagger */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -113,11 +113,13 @@ body    { background: #0f172a; color: #e2e8f0; }
   100% { transform: scale(1); }
 }
 
-/* Hover en cards */
+/* Card hover */
 .card:hover { transform: translateY(-2px); box-shadow: 0 8px 12px rgba(0,0,0,0.4); }
 ```
 
-### Language Toggle (JavaScript)
+### Bilingual Language Toggle (JavaScript)
+
+The report MUST have a working ESP/ENG toggle. Use this pattern:
 
 ```javascript
 function switchLang(lang) {
@@ -129,18 +131,30 @@ function switchLang(lang) {
 }
 ```
 
-### Score Circle con SVG Animado (Opcional)
+CSS for visibility:
+```css
+.lang-es, .lang-en { transition: opacity 0.3s; }
+.lang-hidden { display: none !important; }
+```
 
-Para un efecto más profesional, usa SVG circle con `stroke-dasharray` y `stroke-dashoffset` animado para mostrar visualmente el score.
+Every text element that differs by language must have TWO versions:
+```html
+<span class="lang-es">Texto en español</span>
+<span class="lang-en lang-hidden">English text</span>
+```
+
+### Score Circle with SVG Animation (Optional, Recommended)
+
+For a professional look, use SVG circle with `stroke-dasharray` and animated `stroke-dashoffset` to visually display the score as a circular progress indicator.
 
 ---
 
-## 📊 Mapeo de Hallazgos a CWE/OWASP/ISO
+## 📊 Finding-to-CWE/OWASP/ISO Mapping
 
-Usa esta tabla para asignar referencias a cada hallazgo:
+Use this table to assign references to each finding type:
 
-| Tipo de Hallazgo | CWE | OWASP | ISO 27001 |
-|-----------------|-----|-------|-----------|
+| Finding Type | CWE | OWASP | ISO 27001 |
+|-------------|-----|-------|-----------|
 | Missing CSP header | CWE-1021, CWE-79 | A5:2021 | A.8.25 |
 | Missing HSTS header | CWE-319 | A5:2021 | A.8.20 |
 | Missing X-Frame-Options | CWE-1021 | A4:2021 | A.8.20 |
@@ -167,48 +181,48 @@ Usa esta tabla para asignar referencias a cada hallazgo:
 
 ---
 
-## 📝 Estructura del Reporte
+## 📝 Report Structure
 
 ### 1. Target Info Card
-- Dominio, tipo de auditoría, fecha, WAF/CDN detectado, estado SSL
+- Domain, audit type, date, WAF/CDN detected, SSL status
 
 ### 2. Summary Card
-- **Score numérico** (0-100) dentro de círculo con color según nivel
-- **Score SVG animado** (opcional)
-- **Etiqueta de riesgo**: 🔴 ALTO / 🟡 MEDIO / 🟢 BAJO
-- **Grid con conteo** de hallazgos por severidad
+- **Score number** (0-100) inside a color-coded circle
+- **Animated SVG score** (optional but recommended)
+- **Risk label**: 🔴 HIGH / 🟡 MEDIUM / 🟢 LOW (bilingual)
+- **Count grid** of findings by severity
 
 ### 3. Findings Cards
-Cada hallazgo con:
-- Icono de severidad
-- Título en ESP y ENG
-- Detalle del hallazgo
-- **Tags CWE + OWASP + ISO** (con colores)
-- Fix recomendado (en código `<code>`)
+Each finding must display:
+- Severity icon
+- Title in ESP and ENG
+- Finding detail/description
+- **CWE + OWASP + ISO tags** (color-coded)
+- Recommended fix in `<code>` block
 
-### 4. Sección de Recomendaciones Prioritarias
-- Lista numerada con las correcciones más urgentes (críticas y altas primero)
+### 4. Prioritized Recommendations Section
+- Numbered list with most urgent corrections first (critical, then high)
 
-### 5. Tabla de Referencias Técnicas
-- Columnas: Código | Descripción ESP/ENG | Fuente (link a MITRE)
+### 5. Technical References Table
+- Columns: Code | Description ESP/ENG | Source (MITRE link)
 - Badges: OWASP Top 10, ISO 27001, NIST SP 800-53, PCI DSS v4.0
 
 ### 6. Footer
-- Marca Ares Tool Security, dominio, fecha
-- Firma de IA: "Enviado por Alicia ✨ — Agente de IA Autónoma"
-- Disclaimer legal: "Este informe es auditable, verificable y trazable bajo OWASP, CWE e ISO 27001"
+- Brand: Ares Tool Security, domain, date
+- AI signature: "Sent by Alicia ✨ — Autonomous AI Agent" (bilingual)
+- Disclaimer: "This report is auditable, verifiable and traceable under OWASP, CWE and ISO 27001"
 - © 2026
 
 ---
 
-## 💡 Reglas de Parseo
+## 💡 Parsing Rules
 
-El reporte `.md` de Ares tiene este formato:
+The Ares `.md` report follows this format:
 
 ```markdown
 # 🔐 Ares Tool Security Audit Report
 
-**Target:** `https://ejemplo.com`
+**Target:** `https://example.com`
 **Type:** web-audit
 **Date:** 2026-05-08
 **Duration:** 10.3s
@@ -222,61 +236,62 @@ El reporte `.md` de Ares tiene este formato:
 
 ### 🔴 CRITICAL
 **1. Missing CSP header**
-   - *Detail:* descripción
+   - *Detail:* description
    - *Fix:* `add_header Content-Security-Policy "..."`
 ```
 
-Reglas de parseo:
-- **Score:** Extraer de `**Security Score:** (\d+)/100`
-- **Target:** Extraer de `` **Target:** `(.+)` ``
-- **Hallazgos críticos:** Buscar bajo `### 🔴 CRITICAL`
-- **Hallazgos altos:** Buscar bajo `### 🟠 HIGH`
-- **Hallazgos medios:** Buscar bajo `### 🟡 MEDIUM`
-- **Hallazgos bajos:** Buscar bajo `### 🔵 LOW`
-- **Aprobados:** Buscar bajo `### ✅ PASS`
-- Cada hallazgo: `**N. Título**` + `Detail:` + `Fix:`
+Parsing rules:
+- **Score:** Extract from `**Security Score:** (\d+)/100`
+- **Target:** Extract from `` **Target:** `(.+)` ``
+- **Critical findings:** Under `### 🔴 CRITICAL`
+- **High findings:** Under `### 🟠 HIGH`
+- **Medium findings:** Under `### 🟡 MEDIUM`
+- **Low findings:** Under `### 🔵 LOW`
+- **Passed checks:** Under `### ✅ PASS`
+- Each finding: `**N. Title**` + `Detail:` + `Fix:`
 
 ---
 
-## ✅ Checklist de Validación
+## ✅ Validation Checklist
 
-Antes de entregar el HTML, verifica:
+Before delivering the HTML, verify:
 
-- [ ] Language toggle ESP/ENG funcional
-- [ ] Score circle animado con color correcto
-- [ ] Todos los hallazgos parseados del .md
-- [ ] Tags CWE/OWASP/ISO asignados correctamente
-- [ ] Animaciones CSS funcionando (fadeInUp, pulse, hover)
-- [ ] Responsive en 3 tamaños: desktop, tablet, móvil (320px)
-- [ ] Sin errores JavaScript en consola
-- [ ] Código HTML/CSS/JS auto-contenido (sin dependencias externas)
-- [ ] Archivo nombrado como `reporte-auditoria-<dominio>.html`
+- [ ] Language toggle ESP/ENG works (click both buttons)
+- [ ] Animated score circle with correct color based on score
+- [ ] All findings parsed from both .md files
+- [ ] CWE/OWASP/ISO tags assigned correctly per finding type
+- [ ] CSS animations working (fadeInUp, pulse, card hover)
+- [ ] Responsive at 3 breakpoints: desktop, tablet, mobile (320px)
+- [ ] No JavaScript console errors
+- [ ] Self-contained HTML/CSS/JS (no external CDN dependencies)
+- [ ] File named as `audit-report-<domain>.html`
+- [ ] Legal footer present with AI signature and disclaimer
 
 ---
 
-## 🔗 Ejemplo Visual de Referencia
+## 🔗 Reference Visual Layout
 
-El reporte final debe verse similar a este diseño conceptual:
+The final HTML should follow this structure:
 
 ```
 ┌──────────────────────────────────────────┐
-│  [🇪🇸 Español] [🇬🇧 English]              │  ← Sticky Toggle
+│  [🇪🇸 Español] [🇬🇧 English]              │  ← Sticky language toggle
 ├──────────────────────────────────────────┤
 │         ⚔️ Ares Tool Security            │
-│    Auditoría de Seguridad Web            │
+│    Web Security Audit / Auditoría Web    │
 │    [40/100] [Cloudflare] [SSL: ✅]       │
 ├──────────────────────────────────────────┤
 │  🎯 Target Information                   │
 │  ┌──────┬──────┬──────┬──────┐           │
-│  │Dominio│ Tipo │Fecha │Report│           │
+│  │Domain│ Type │ Date │Report│           │
 │  └──────┴──────┴──────┴──────┘           │
 ├──────────────────────────────────────────┤
 │  📊 Security Summary                     │
 │       ┌──────────┐                       │
-│       │   40     │  ← Score animado      │
+│       │   40     │  ← Animated score     │
 │       │  / 100   │                       │
 │       └──────────┘                       │
-│  🔴 ALTO — Acciones correctivas urgentes │
+│  🔴 HIGH RISK — Corrective actions req.  │
 │  ┌───┬───┬───┬───┬───┐                  │
 │  │🔴4│🟠1│🟡1│🔵0│✅2│                  │
 │  └───┴───┴───┴───┴───┘                  │
@@ -284,47 +299,41 @@ El reporte final debe verse similar a este diseño conceptual:
 │  🔍 Detailed Findings                    │
 │                                          │
 │  ┌──────────────────────────────────┐    │
-│  │🔴 Missing CSP Header             │    │  ← Animación fadeInUp
-│  │ Detail: No se implementó...      │    │
+│  │🔴 Missing CSP Header             │    │  ← fadeInUp animation
+│  │ Detail: Header not implemented.. │    │
 │  │ [CWE-1021] [CWE-79] [OWASP A5]  │    │
 │  │ Fix: add_header Content-Sec...   │    │
 │  └──────────────────────────────────┘    │
-│                                          │
-│  ┌──────────────────────────────────┐    │
-│  │🔴 Missing HSTS Header           │    │
-│  │ ...                              │    │
-│  └──────────────────────────────────┘    │
 │  ...                                     │
 ├──────────────────────────────────────────┤
-│  📋 Recommendations (ordered)            │
+│  📋 Recommendations (prioritized)        │
 │  1. Implement security headers           │
-│  2. Close port 8080                      │
+│  2. Close exposed ports                  │
 │  3. Enable HSTS Preload                  │
 ├──────────────────────────────────────────┤
 │  📚 Technical References                  │
 │  ┌──────┬──────────────────┬──────┐      │
 │  │CWE-79│ XSS              │MITRE │      │
 │  │CWE-89│ SQL Injection    │MITRE │      │
-│  │ ...   │                  │      │      │
 │  └──────┴──────────────────┴──────┘      │
 │  [OWASP] [ISO] [NIST] [PCI DSS]          │
 ├──────────────────────────────────────────┤
-│  Footer legal auditable                   │
+│  Legal footer / AI signature              │
 └──────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 Flujo de Trabajo
+## 🚀 Workflow
 
-1. El usuario ejecuta Ares Tool Security y obtiene 2 archivos `.md` en `reports/`
-2. El usuario te entrega a ti (modelo de IA):
-   - Este archivo `FORGE_REPORT.md` como instrucción
-   - El contenido de `web-audit-<dominio>.md`
-   - El contenido de `vuln-scan-<dominio>.md`
-3. Tú generas un único archivo `reporte-auditoria-<dominio>.html`
-4. El usuario abre el `.html` en su navegador y tiene su reporte profesional listo
+1. User runs Ares Tool Security and gets 2 `.md` files in `reports/`
+2. User provides you (AI model) with:
+   - This file (`FORGE_REPORT.md`) as instructions
+   - The content of `web-audit-<domain>.md`
+   - The content of `vuln-scan-<domain>.md`
+3. You generate a single `audit-report-<domain>.html` file
+4. User opens the `.html` in their browser — professional bilingual report ready
 
 ---
 
-*Creado por Alicia ✨ — Ares Tool Security | Framework ContextP / OBPA*
+*Created by Alicia ✨ — Ares Tool Security | ContextP / OBPA Framework*

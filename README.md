@@ -1,63 +1,111 @@
 # 🔐 Ares Tool Security
 
 > Interactive security auditing suite for systems and web applications.
-> CLI bash + Python. No dependencies. Reports in Markdown.
+> CLI bash + Python. Reports in Markdown and HTML.
 
 [![CI](https://github.com/uramos89/ares-tool-security/actions/workflows/ci.yml/badge.svg)](https://github.com/uramos89/ares-tool-security/actions/workflows/ci.yml)
 
 ---
 
+## 📋 Prerequisites
+
+### Required for both OS
+
+| Requirement | Description | Download |
+|-------------|-------------|----------|
+| **Git** | Version control system to clone the repository | [git-scm.com](https://git-scm.com/downloads) |
+| **Python 3.12+** | Core runtime for all audit modules | [python.org](https://www.python.org/downloads/) |
+
+### Verify Installation
+
+**Linux (Ubuntu/Debian):**
+```bash
+git --version
+python3 --version
+```
+
+**Windows (PowerShell):**
+```powershell
+git --version
+python --version
+```
+> **Note:** On Windows, use `python` instead of `python3`.
+
+---
+
 ## 🚀 Quick Start
 
+### Linux / macOS
+
 ```bash
+# 1. Clone the repository
 git clone https://github.com/uramos89/ares-tool-security.git
 cd ares-tool-security
+
+# 2. Make scripts executable
 chmod +x audit.sh
+chmod +x scripts/full-scan.py
+
+# 3. Run interactive menu
 ./audit.sh
+
+# Or run full scan directly
+python3 scripts/full-scan.py https://example.com
 ```
+
+### Windows (PowerShell)
+
+```powershell
+# 1. Clone the repository
+git clone https://github.com/uramos89/ares-tool-security.git
+cd ares-tool-security
+
+# 2. Run full scan (all 4 modules)
+python scripts/full-scan.py https://example.com
+
+# Or run modules individually
+python modules/web-audit.py https://example.com
+python modules/brute-force.py https://example.com
+python modules/ddos-audit.py https://example.com
+python modules/vuln-scan.py https://example.com
+```
+
+---
 
 ## 📋 Modules
 
 | # | Module | Description |
 |---|--------|-------------|
-| 1 | 🌐 Web Audit | SSL, security headers, stack fingerprint, directory busting, forms, cookies, CORS |
-| 2 | 🔨 Brute Force | Rate limiting, account lockout, DDoS resilience, 2FA detection |
-| 3 | 🛡️ DDoS Audit | WAF/CDN detection, concurrent load test (10 parallel), timeout analysis |
-| 4 | 🎯 Vuln Scan | CSRF, XSS, SQLi, cookie security, CORS misconfig, open redirect, info disclosure |
-| 5 | 📋 Full Scan | All modules in sequence |
+| 1 | 🌐 Web Audit | SSL, security headers (9), stack fingerprinting, directory busting (22 paths), DNS/SPF/DMARC, cookie security, forms & CSRF, CORS, reflected XSS, SQL injection, open redirect, info disclosure, WAF/CDN (12 providers), mixed content, cache & compression, HTTPS enforcement, security.txt, SRI (Subresource Integrity), network ports (8 ports) |
+| 2 | 🔨 Brute Force | Catch-all detection, rate limiting test (15 requests), lockout test (20 rapid requests), 2FA endpoint scan |
+| 3 | 🛡️ DDoS Audit | WAF/CDN detection (Cloudflare, CloudFront, Akamai, Fastly, AWS WAF, etc.), rate limiting headers analysis, concurrent load test (10 parallel), timeout & connection analysis |
+| 4 | 🎯 Vuln Scan | Form analysis + CSRF detection, cookie security audit (Secure/HttpOnly/SameSite), CORS misconfiguration, reflected XSS (7 payloads × 8 params), SQL injection (8 payloads × 8 params), open redirect (12 params), information disclosure |
+
+---
 
 ## ⚡ Examples
 
 ```bash
-# Interactive audit menu
+# Interactive audit menu (Linux only)
 ./audit.sh
 
-# Individual modules (generates 1 .md each)
+# Full scan — all 4 modules, single command
+python3 scripts/full-scan.py https://example.com
+
+# Individual modules
 python3 modules/web-audit.py https://example.com
 python3 modules/brute-force.py https://example.com
 python3 modules/ddos-audit.py https://example.com
 python3 modules/vuln-scan.py https://example.com
-
-# Full scan — all 4 modules, one command (cross-platform, generates 4 separate .md)
-python3 scripts/full-scan.py https://example.com
-
-# Full scan from menu
-./audit.sh  # Option 5
 ```
 
-After running modules, generate professional HTML reports:
-
-```bash
-# Native converter (no AI needed)
-python3 lib/report-html.py reports/web-audit-*.md -o report.html
-
-# Or use FORGE_REPORT.md with ChatGPT/Claude
-# Paste the 4 .md files + docs/FORGE_REPORT.md into any AI
-```
+---
 
 ## 🧠 Catch-All Detection
 
-Ares automatically detects servers with **catch-all routing** (returning 200 instead of 404). When detected, sensitive paths are flagged as **false positives** and excluded from critical findings.
+Ares automatically detects servers with **catch-all routing** (returning 200 instead of 404 for non-existent paths). When detected, sensitive paths are flagged as **false positives** with a ⚠️ badge and excluded from critical findings.
+
+---
 
 ## 📊 Reports
 
@@ -69,59 +117,56 @@ All reports are saved in `reports/` as `.md` with scoring, severity levels, and 
 
 Use the [`docs/FORGE_REPORT.md`](docs/FORGE_REPORT.md) as a **universal prompt** for ANY AI model (ChatGPT, Claude, Gemini, Copilot) to generate a professional HTML report with:
 
-- 🎨 **Dark theme** with responsive design (desktop, tablet, mobile)
-- 🌐 **ESP 🇪🇸 / ENG 🇬🇧 language toggle** — switch without reload
-- ✨ **CSS animations** — fadeInUp, score circle pulse, card hover
-- 📊 **Animated score circle** with color-coded risk level
-- 🔍 **Each finding** with auto-mapped CWE, OWASP, and ISO 27001 tags
-- 📋 **Prioritized recommendations** (critical and high first)
+- 🎨 **Light corporate theme** (`#f4f6f9` background, white cards, Bootstrap 5.3)
+- 🌐 **ESP 🇪🇸 / ENG 🇬🇧 language toggle**
+- ✨ **CSS animations** (fadeInUp, card hover)
+- 📊 **Animated score circle** with weighted formula `(avg + min) / 2`
+- 🔍 **Each finding** with CWE, OWASP, and ISO 27001 tags
+- 📋 **Prioritized recommendations**
+- 📄 **PDF export button** (html2pdf.js)
 - 📚 **Technical references table** with MITRE links
-- ⚖️ **Auditable legal footer** — traceable under OWASP, CWE, ISO 27001
-- 📱 **100% responsive** — clamp fonts, auto-fit grids, media queries
+- ⚖️ **Auditable legal footer**
 
 #### How to Generate the HTML
 
 ```bash
-# 1. Run the audit
-python3 modules/web-audit.py https://example.com
-python3 modules/vuln-scan.py https://example.com
+# 1. Run all 4 modules
+python3 scripts/full-scan.py https://example.com
 
 # 2. Open ChatGPT/Claude/Gemini and paste:
 #    - The contents of docs/FORGE_REPORT.md
-#    - The contents of both .md files from reports/
-#    - Ask: "Generate the professional HTML report"
-#    → The AI returns a ready-to-open .html file
+#    - The contents of all .md files from reports/
+#    - Ask: "Generate the HTML report"
+#    → The AI returns a complete .html file
 ```
 
-Or use the **native generator** (no external AI needed):
+---
 
-```bash
-python3 lib/report-html.py reports/web-audit-*.md -o report.html
-```
-
-## 📂 Structure
+## 📂 Project Structure
 
 ```
 ares-tool-security/
-├── audit.sh            ← Interactive entry point (menu)
-├── modules/            ← Audit modules
-│   ├── web-audit.py    ← SSL, headers, stack, dir busting, forms, cookies, CORS
-│   ├── brute-force.py  ← Rate limiting, lockout, DDoS resilience, 2FA
-│   ├── ddos-audit.py   ← WAF/CDN, concurrent load, timeout
-│   └── vuln-scan.py    ← CSRF, XSS, SQLi, CORS, open redirect, info leak
-├── lib/                ← Libraries
-│   ├── reporter.py     ← .md report generator with scoring
-│   ├── report-html.py  ← .md → professional .html converter
-│   ├── emailer.py      ← SMTP email sender for reports
-│   └── colors.sh       ← Terminal colors
-├── tests/              ← Unit tests
-├── reports/            ← Generated reports (.md / .html)
-├── scripts/             ← Utility scripts
-│   └── full-scan.py     ← Run all 4 modules: python3 scripts/full-scan.py <url>
-├── scrum/              ← Agile methodology docs
+├── audit.sh              ← Interactive entry point (Linux)
+├── scripts/
+│   └── full-scan.py      ← Run all 4 modules: python3 scripts/full-scan.py <url>
+├── modules/              ← Audit modules
+│   ├── web-audit.py      ← 20 security checks
+│   ├── brute-force.py    ← Rate limiting + lockout
+│   ├── ddos-audit.py     ← WAF/CDN + load test
+│   └── vuln-scan.py      ← XSS, SQLi, CORS, CSRF
+├── lib/                  ← Libraries
+│   ├── reporter.py       ← .md report generator
+│   ├── report-html.py    ← .md → .html converter (native)
+│   ├── mailer.py         ← Email sender (AgentMail + SMTP)
+│   └── colors.sh         ← Terminal colors
+├── tests/                ← Unit tests
+├── reports/              ← Generated reports (.md / .html)
+├── scrum/                ← Agile methodology docs
 └── docs/
-    └── FORGE_REPORT.md ← Universal AI prompt for HTML report generation
+    └── FORGE_REPORT.md   ← Universal AI prompt for HTML generation
 ```
+
+---
 
 ## 🤝 Contributing
 

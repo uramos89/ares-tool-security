@@ -68,6 +68,8 @@ python modules/web-audit.py https://example.com
 python modules/brute-force.py https://example.com
 python modules/ddos-audit.py https://example.com
 python modules/vuln-scan.py https://example.com
+python modules/harpoon.py https://example.com
+python modules/harpoon.py 192.168.1.1 --ports 22,80,3306
 ```
 
 ---
@@ -80,6 +82,7 @@ python modules/vuln-scan.py https://example.com
 | 2 | 🔨 Brute Force | Catch-all detection, rate limiting test (15 requests), lockout test (20 rapid requests), 2FA endpoint scan |
 | 3 | 🛡️ DDoS Audit | WAF/CDN detection (Cloudflare, CloudFront, Akamai, Fastly, AWS WAF, etc.), rate limiting headers analysis, concurrent load test (10 parallel), timeout & connection analysis |
 | 4 | 🎯 Vuln Scan | Form analysis + CSRF detection, cookie security audit (Secure/HttpOnly/SameSite), CORS misconfiguration, reflected XSS (7 payloads × 8 params), SQL injection (8 payloads × 8 params), open redirect (12 params), information disclosure |
+| 5 | 🎯 **Harpoon** | **Service validation**: SSH (banner, ciphers, auth methods, CVE lookup), HTTP/HTTPS (server, methods, default panels, default creds), MySQL/PostgreSQL/Redis/MongoDB (anonymous access), FTP (anonymous login), SMTP (STARTTLS), SMB/Telnet. Reads banners, probes default credentials, checks for CVEs by version |
 
 ---
 
@@ -97,6 +100,10 @@ python3 modules/web-audit.py https://example.com
 python3 modules/brute-force.py https://example.com
 python3 modules/ddos-audit.py https://example.com
 python3 modules/vuln-scan.py https://example.com
+python3 modules/harpoon.py https://example.com
+
+# Harpoon with custom ports
+python3 modules/harpoon.py 192.168.1.1 --ports 22,80,443,3306,6379
 ```
 
 ---
@@ -153,7 +160,8 @@ ares-tool-security/
 │   ├── web-audit.py      ← 20 security checks
 │   ├── brute-force.py    ← Rate limiting + lockout
 │   ├── ddos-audit.py     ← WAF/CDN + load test
-│   └── vuln-scan.py      ← XSS, SQLi, CORS, CSRF
+│   ├── vuln-scan.py      ← XSS, SQLi, CORS, CSRF
+│   └── harpoon.py        ← Service validation (SSH, DB, FTP, HTTP methods, panels)
 ├── lib/                  ← Libraries
 │   ├── reporter.py       ← .md report generator
 │   ├── report-html.py    ← .md → .html converter (native)

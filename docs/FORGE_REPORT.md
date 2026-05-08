@@ -190,6 +190,45 @@ Todas las filas deben tener enlace a `https://cwe.mitre.org/data/definitions/[CW
 
 ---
 
+## 🚨 ERRORES COMUNES QUE DEBES EVITAR (aprendido de fallos reales)
+
+### Error #1: Inventar datos que no están en los .md
+**NUNCA** inventes números, estadísticas o hallazgos. Si el .md no dice algo, NO lo pongas.
+- ❌ Mal: "100+ requests, 0% blocked" — esto no está en ningún .md
+- ✅ Bien: "Rate limiting test skipped (catch-all routing)" — esto SÍ está en brute-force.md
+
+### Error #2: No usar la SUMMARY TABLE para contar severidades
+La tabla de resumen en cada .md dice EXACTAMENTE cuántos hallazgos de cada severidad hay.
+- web-audit.md → 3 Critical, 13 High, 10 Medium, 5 Low, 10 Pass
+- vuln-scan.md → 6 Critical, 6 High, 3 Medium, 0 Low, 4 Pass
+- ddos-audit.md → 0 Critical, 1 High, 1 Medium, 1 Low, 1 Pass
+- brute-force.md → 0 Critical, 0 High, 1 Medium, 2 Low, 1 Pass
+
+Calcula los totales SUMANDO los 4 módulos. NO inventes los números.
+
+### Error #3: No leer findings literalmente
+Si el finding dice "Rate limiting test skipped (catch-all routing)", NO digas "100+ requests".
+Lee el Detail: y el Fix: textualmente del .md.
+
+### Error #4: Language toggle con style.display
+Usar `style.display = 'block'` rompe las tablas HTML (los `<td>` necesitan `display: table-row-group`).
+✅ Usa classList.toggle con clases CSS en lugar de style.display.
+
+### Error #5: Saltarse secciones obligatorias
+- Recomendaciones: 5-7 items, priorizar críticos. CADA ÍTEM BILINGÜE. NO omitir esta sección.
+- Puertos de red: extraer de web-audit.md (findings con "Port" o "Puerto").
+- Brute force: extraer findings literales de brute-force.md.
+
+### Error #6: Usar fondo oscuro `#0f172a`
+El prompt dice explícitamente fondo `#f4f6f9`. NO uses el gradiente oscuro ni `#0f172a` en ningún lugar.
+Header debe ser blanco o gradiente claro, NO oscuro.
+
+### Error #7: Poner score sin verificar fórmula
+Score = (promedio + mínimo) / 2. Usa los 4 scores de los .md.
+NO redondees agresivamente. 22.5 → 22.
+
+---
+
 ## ⚠️ TEXTOS PREDEFINIDOS PARA HALLAZGOS COMUNES
 Si el `.md` no proporciona una descripción detallada, usa estos:
 

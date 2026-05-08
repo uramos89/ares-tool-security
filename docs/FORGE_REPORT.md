@@ -1,498 +1,167 @@
-# ⚔️ Ares Forge Report — Universal Prompt for HTML Report Generation
+# ⚔️ Ares Forge Report — How Alicia Reads the Data
 
-> **Purpose:** This file contains instructions for any AI model (Claude, ChatGPT, Gemini, Copilot, etc.) to generate a **professional bilingual HTML report** from the `.md` files produced by **Ares Tool Security**.
+> **Purpose:** This file teaches ANY AI model (Claude, ChatGPT, Gemini) how **I (Alicia)** process `.md` audit reports from Ares Tool Security to generate a professional HTML report. Follow this process STEP BY STEP.
 >
-> **Usage:** Provide the AI with the 2 audit `.md` files + this file's content as instructions. The AI will output a single `.html` file.
+> **Why this works:** The `.md` files contain raw data. I interpret them based on context. You should too.
 
 ---
 
-## 🎯 Objective
+## 🧠 MY PROCESS: Step by Step
 
-Generate a `audit-report-<domain>.html` file with:
+### Step 1: Read each `.md` file like I do
 
-- **Corporate blue theme** inspired by Sistemas Contino palette: `#f0f4f8` (page bg), `#ffffff` (cards), `#005095` (primary blue), `#0094ff` (accent), `#012346` (dark). Soft light blue background, NOT dark slate.
-- **Bilingual language toggle** ESP 🇪🇸 / ENG 🇬🇧 — switches ALL content without page reload
-- **Interactive accordion for findings**: each finding header is clickable. Click to expand/collapse the detail + fix. Saves space, makes report scannable.
-- **Progress bar** at top of page: thin colored bar that fills as user scrolls (reading progress indicator)
-- **Severity filter tabs**: sticky tabs "All | 🔴 Critical | 🟠 High | 🟡 Medium" — click to filter findings by severity
-- **CSS animations** (fadeInUp, score circle pulse, card hover elevation, accordion slide transition)
-- **Animated score circle** with SVG circle + stroke-dashoffset animation
-- **Responsive design** (clamp fonts, auto-fit grid, mobile media queries down to 320px)
-- **CWE + OWASP + ISO 27001** references auto-mapped per finding
-- **Technical references table** with links to MITRE
-- **Prioritized recommendations** (critical and high first)
-- **Auditable legal footer** with AI agent signature (bilingual)
+I open each `.md` and look for 4 things:
 
----
-
-## 📥 Input
-
-You will receive **up to 4 Markdown files** (one per module executed):
-
-1. `web-audit-<domain>-<date>.md` — Full web audit (20 checks: SSL, headers, stack, dir busting, forms, cookies, CORS, XSS, SQLi, DNS, ports, etc.)
-2. `brute-force-<domain>-<date>.md` — Brute force test (rate limiting, lockout, 2FA detection)
-3. `ddos-audit-<domain>-<date>.md` — DDoS resilience (WAF/CDN detection, concurrent load, timeout)
-4. `vuln-scan-<domain>-<date>.md` — Vulnerability scan (CSRF, XSS, SQLi, CORS, open redirect, info disclosure)
-
-All follow the standard Ares Tool Security format: headings with `# `, findings with `**N. Title**`, severity with emojis 🔴🟠🟡🔵✅, and sections `### 🔴 CRITICAL`, `### 🟠 HIGH`, etc.
-
-Consolidate findings from ALL available .md files into a single HTML report. Merge duplicate findings and combine severity counts across modules.
-
----
-
-## 📋 HTML Technical Specifications
-
-### Document Structure
-
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ares Tool Security — Audit Report / Reporte de Auditoría</title>
-  <style>/* ... */</style>
-</head>
-<body>
-  <!-- Language Toggle -->
-  <!-- Header -->
-  <!-- Target Info Card -->
-  <!-- Summary Card (Score + Counts) -->
-  <!-- Findings Cards -->
-  <!-- Recommendations -->
-  <!-- Technical References -->
-  <!-- Footer -->
-  <script>/* language toggle */</script>
-</body>
-</html>
+```
+1. **Security Score:** XX/100  →  This is the module's score
+2. **Target:** `https://...`    →  The domain we audited
+3. ### 🔴 CRITICAL section    →  Most important findings first
+4. Each finding: **N. Title**  →  Detail, Fix
 ```
 
-### CSS Palette
+**Key insight:** The `.md` has a SUMMARY TABLE that shows `Severity | Count`. This tells me HOW MANY of each severity exist. If it says 3 Critical but I only find 2 in the text, I keep looking. ALL findings must be included.
 
-```css
-/* Corporate Blue Palette (sistemascontino.com.mx inspired) */
-:root {
-  --page-bg:    #f0f4f8;
-  --card-bg:    #ffffff;
-  --text-main:  #1e293b;
-  --text-dim:   #64748b;
-  --primary:    #005095;
-  --primary-light: #e8f0fe;
-  --accent:     #0094ff;
-  --dark:       #012346;
-  --border:     #d1d9e6;
-}
-body    { background: var(--page-bg); color: var(--text-main); }
-.card   { background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-.stat-box { background: var(--primary-light); border: 1px solid var(--border); }
+### Step 2: Detect what's REAL vs FALSE POSITIVE
 
-/* Score Circle */
-.score-circle {
-  border: 6px solid;
-  border-radius: 50%;
-  width: clamp(80px, 15vw, 120px);
-  height: clamp(80px, 15vw, 120px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  font-size: clamp(1.8em, 5vw, 2.5em);
-  font-weight: 700;
-}
-/* Score color: <50: #dc2626, 50-79: #d97706, >=80: #16a34a */
+**This is the most important step.** Servers with "catch-all routing" return HTTP 200 for EVERYTHING - even paths that don't exist.
 
-/* Severity colors (same for light theme, stronger contrast) */
-.critical: #dc2626 | .high: #ea580c | .medium: #d97706
-.low: #2563eb | .pass: #16a34a
+**How I detect this:**
+- If the `.md` contains a finding titled "Catch-all routing detected" → **flag activated**
+- All findings with `Detail: HTTP 200, 42061 bytes` (same size as homepage) → **FALSE POSITIVE**
+- All findings with `Path exposed: /xxx` where the detail says HTTP 200 and the server has catch-all → **FALSE POSITIVE**
 
-/* Finding cards: colored left border + very light background */
-.finding-{severity} {
-  border-left: 4px solid <color>;
-  background: rgba(<color_rgb>, 0.05);
-}
+**What I do with false positives:**
+- I still SHOW them in the findings list (the user should know what the scanner found)
+- But I add a note: `⚠️ False positive (catch-all routing — server returns homepage for all paths)`
+- I do NOT count them as real critical/high findings for the score
 
-/* Score circle color based on score */
-.score-fill { stroke: <color>; } /* <50: #dc2626, 50-79: #d97706, >=80: #16a34a */
-```
+**Real findings that are NOT false positives:**
+- Missing headers (HSTS, CSP, XFO) — these are REAL
+- Open ports — REAL
+- Mixed content — REAL
+- Technology disclosure — REAL
+- No WAF/CDN — REAL
+- SSL certificate expiry — REAL
 
-### CSS Animations
+### Step 3: Write findings in HUMAN language
 
-```css
-/* Card fadeInUp stagger */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.card { animation: fadeInUp 0.5s ease-out; }
-.card:nth-child(n) { animation-delay: 0.1s * n; }
+When I read a finding like `CSP no configurado`, I don't just repeat it. I explain WHY it matters:
 
-/* Score circle pulse */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
+| Finding | Good explanation (human) |
+|---------|------------------------|
+| Missing CSP | "The site has no Content Security Policy. This means an attacker could inject malicious scripts (XSS) and the browser wouldn't block them. It's like leaving your front door unlocked." |
+| No WAF/CDN | "The server is directly exposed to the internet. No Cloudflare, no AWS WAF, no protection layer. It's like having your house directly on the street with no fence." |
+| SQL Injection | "The application processes database queries without sanitizing user input. An attacker can extract, modify, or delete the entire database by typing commands into form fields." |
 
-/* Card hover */
-.card:hover { transform: translateY(-2px); box-shadow: 0 8px 12px rgba(0,0,0,0.4); }
+**Every explanation must have:**
+1. What the finding IS (simple)
+2. What could happen (the risk)
+3. An analogy if helpful
 
-/* Accordion */
-.finding { cursor: pointer; transition: all 0.3s; }
-.finding-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-.finding-body { display: none; margin-top: 12px; animation: fadeInUp 0.3s ease-out; }
-.finding.expanded .finding-body { display: block; }
-.expand-icon { transition: transform 0.3s; }
-.finding.expanded .expand-icon { transform: rotate(180deg); }
+### Step 4: Assign REAL references (with correct links)
 
-/* Filter bar */
-.filter-bar { display: flex; gap: 8px; padding: 10px 0; background: var(--page-bg); border-bottom: 1px solid var(--border); }
-.filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
-.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+Each CWE has a **real URL on MITRE's website**. Use these:
 
-/* Progress bar */
-#progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); width: 0%; z-index: 1001; transition: width 0.2s; }
-```
-
-### Progress Bar (Scrolling Progress)
-
-```html
-<div id="progress-bar" style="position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0%;z-index:1001;transition:width 0.2s;"></div>
-
-<script>
-window.addEventListener('scroll', () => {
-  const h = document.documentElement.scrollHeight - window.innerHeight;
-  document.getElementById('progress-bar').style.width = (window.scrollY / h * 100) + '%';
-});
-</script>
-```
-
-### Severity Filter Tabs
-
-Sticky tabs below the language toggle that filter findings by severity:
-
-```html
-<div class="filter-bar" style="position:sticky;top:50px;z-index:1000;">
-  <button class="filter-btn active" data-filter="all">All</button>
-  <button class="filter-btn" data-filter="critical">🔴 Critical</button>
-  <button class="filter-btn" data-filter="high">🟠 High</button>
-  <button class="filter-btn" data-filter="medium">🟡 Medium</button>
-</div>
-
-<script>
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const filter = btn.dataset.filter;
-    document.querySelectorAll('.finding').forEach(f => {
-      f.style.display = (filter === 'all' || f.classList.contains(filter)) ? 'block' : 'none';
-    });
-  });
-});
-</script>
-```
-
-### Accordion Findings (Click to Expand)
-
-Each finding card becomes a clickable accordion. Default: collapsed (shows only title + severity). Click to expand detail + fix + CWE tags.
-
-```html
-<div class="finding critical" onclick="this.classList.toggle('expanded')">
-  <div class="finding-header">
-    🔴 Missing CSP Header
-    <span class="expand-icon">▼</span>
-  </div>
-  <div class="finding-body" style="display:none;">
-    <p>Detail description</p>
-    <div class="tags">...</div>
-    <code>Fix command</code>
-  </div>
-</div>
-
-<script>
-document.querySelectorAll('.finding').forEach(el => {
-  el.querySelector('.finding-header').addEventListener('click', () => {
-    el.classList.toggle('expanded');
-    const body = el.querySelector('.finding-body');
-    body.style.display = body.style.display === 'none' ? 'block' : 'none';
-  });
-});
-</script>
-```
-
-### Bilingual Language Toggle (JavaScript)
-
-The report MUST have a working ESP/ENG toggle. Use this pattern:
-
-```javascript
-function switchLang(lang) {
-  document.querySelectorAll('.lang-es').forEach(el => el.classList.toggle('lang-hidden', lang !== 'es'));
-  document.querySelectorAll('.lang-en').forEach(el => el.classList.toggle('lang-hidden', lang !== 'en'));
-  document.getElementById('btn-es').classList.toggle('active', lang === 'es');
-  document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-  document.documentElement.lang = lang;
+```python
+CWE_LINKS = {
+    "CWE-79":  "https://cwe.mitre.org/data/definitions/79.html",
+    "CWE-89":  "https://cwe.mitre.org/data/definitions/89.html",
+    "CWE-200": "https://cwe.mitre.org/data/definitions/200.html",
+    "CWE-298": "https://cwe.mitre.org/data/definitions/298.html",
+    "CWE-307": "https://cwe.mitre.org/data/definitions/307.html",
+    "CWE-319": "https://cwe.mitre.org/data/definitions/319.html",
+    "CWE-345": "https://cwe.mitre.org/data/definitions/345.html",
+    "CWE-352": "https://cwe.mitre.org/data/definitions/352.html",
+    "CWE-525": "https://cwe.mitre.org/data/definitions/525.html",
+    "CWE-601": "https://cwe.mitre.org/data/definitions/601.html",
+    "CWE-614": "https://cwe.mitre.org/data/definitions/614.html",
+    "CWE-693": "https://cwe.mitre.org/data/definitions/693.html",
+    "CWE-942": "https://cwe.mitre.org/data/definitions/942.html",
+    "CWE-948": "https://cwe.mitre.org/data/definitions/948.html",
+    "CWE-1004": "https://cwe.mitre.org/data/definitions/1004.html",
+    "CWE-1021": "https://cwe.mitre.org/data/definitions/1021.html",
 }
 ```
 
-CSS for visibility:
-```css
-.lang-es, .lang-en { transition: opacity 0.3s; }
-.lang-hidden { display: none !important; }
+The reference table in the HTML MUST have ALL 16 rows, not just the ones matching findings. It's educational — the user should see the full list.
+
+### Step 5: Calculate a REAL score
+
+**My scoring method:**
+
+```python
+scores = [extracted from each .md file]
+# Example: brute-force=60, ddos-audit=90, vuln-scan=100, web-audit=90
+
+# Step 1: Average of all modules
+avg = sum(scores) / len(scores)   # (60+90+100+90)/4 = 85
+
+# Step 2: Find the lowest
+lowest = min(scores)              # 60
+
+# Step 3: Blend average with lowest (fair score)
+final_score = (avg + lowest) / 2  # (85+60)/2 = 72
+
+# DO NOT:
+# ❌ hardcode 0
+# ❌ take only the lowest
+# ❌ take only the average
 ```
 
-Every text element that differs by language must have TWO versions:
-```html
-<span class="lang-es">Texto en español</span>
-<span class="lang-en lang-hidden">English text</span>
-```
+The score circle color:
+- `< 50`: 🔴 `#dc2626` (Critical — text: "CRITICAL RISK")
+- `50 - 79`: 🟡 `#d97706` (Medium — text: "MEDIUM RISK")
+- `>= 80`: 🟢 `#16a34a` (Low — text: "LOW RISK")
 
-### Score Circle with SVG Animation (Optional, Recommended)
+### Step 6: Generate ALL sections of the HTML
 
-For a professional look, use SVG circle with `stroke-dasharray` and animated `stroke-dashoffset` to visually display the score as a circular progress indicator.
+**Target section:**
+- Domain, date, server tech, SSL status, WAF/CDN status
 
----
+**Score section:**
+- Animated SVG circle with the REAL score (calculated above)
+- Risk label (Critical/Medium/Low)
+- Count badges for each severity (from the SUMMARY TABLE in .md)
 
-## 📊 Finding-to-CWE/OWASP/ISO Mapping
+**Findings section:**
+- Each finding as an accordion (click to expand)
+- Bilingual (ESP + ENG) titles and descriptions
+- Tags: CWE, OWASP, ISO references
+- Code fix block
+- False positive badge if applicable
 
-Use this table to assign references to each finding type:
+**Recommendations section:**
+- 5-7 prioritized items, each bilingual (ESP + ENG)
+- Critical findings first, then high, then medium
 
-| Finding Type | CWE | OWASP | ISO 27001 |
-|-------------|-----|-------|-----------|
-| Missing CSP header | CWE-1021, CWE-79 | A5:2021 | A.8.25 |
-| Missing HSTS header | CWE-319 | A5:2021 | A.8.20 |
-| Missing X-Frame-Options | CWE-1021 | A4:2021 | A.8.20 |
-| Missing X-Content-Type-Options | CWE-345 | A5:2021 | A.8.24 |
-| Missing Referrer-Policy | CWE-200 | — | A.8.11 |
-| Missing Permissions-Policy | CWE-200 | — | A.8.11 |
-| CORS wildcard / mirroring | CWE-942 | A1:2021 | A.8.20 |
-| Reflected XSS | CWE-79 | A3:2021 | A.8.25 |
-| SQL Injection | CWE-89 | A3:2021 | A.8.25 |
-| Open Redirect | CWE-601 | A1:2021 | A.8.11 |
-| Missing CSRF token | CWE-352 | A1:2021 | A.8.5 |
-| Cookie missing Secure | CWE-614 | A4:2021 | A.8.20 |
-| Cookie missing HttpOnly | CWE-1004 | — | A.8.20 |
-| No rate limiting / lockout | CWE-307 | A7:2021 | A.8.5 |
-| Path exposed / Info leak | CWE-200 | A1:2021 | A.8.11 |
-| No WAF/CDN | CWE-693 | — | A.8.21 |
-| Mixed content | CWE-948 | — | A.8.20 |
-| SPF/DMARC missing | CWE-345 | — | A.8.24 |
-| Server version disclosed | CWE-200 | — | A.8.11 |
-| SSL certificate expires soon | CWE-298 | — | A.8.20 |
-| No SRI on resources | CWE-345 | — | A.8.24 |
-| Cache-Control allows caching | CWE-525 | — | A.8.20 |
-| security.txt not found | CWE-200 | — | A.8.11 |
+**References table:**
+- ALL 16 CWE rows with MITRE links
+- Bilingual descriptions
+- Framework badges (OWASP, ISO 27001, NIST, PCI DSS)
 
----
-
-> ⚠️ CRITICAL RULES
-> 
-> **RULE 1 — SCORE:** Parse the ACTUAL score from each .md file. Find `**Security Score:** (\d+)/100` in the source. DO NOT hardcode 0. If multiple .md files, use the LOWEST score (most conservative).
-> 
-> **RULE 2 — ALL FINDINGS:** Include EVERY finding from ALL .md files. Do NOT filter, skip, or summarize. If the .md has 41 findings, the HTML must show 41 findings. Missing findings = FAIL.
-> 
-> **RULE 3 — BILINGUAL:** EVERY visible text element MUST have both ESP and ENG versions. Test by clicking the language toggle. If any text stays visible in the wrong language, the report is INCOMPLETE.
-> 
-> **RULE 4 — CATCH-ALL:** If the .md contains a finding "Catch-all routing detected", mark all HTTP 200 path findings as FALSE POSITIVES with a note: "(catch-all routing — false positive)". Do NOT remove them from the list, but add the note.
-> 
-> **RULE 5 — NO DUPLICATES:** If the same finding appears in multiple .md files (e.g., "No WAF" in both web-audit and ddos-audit), show it ONCE with a note "(detected by N modules)".
-
-## 📝 Report Structure (ALL SECTIONS BILINGUAL)
-
-### 1. Target Info Card
-- Domain, audit type, date, WAF/CDN detected, SSL status
-- ALL labels and values in ESP + ENG
-
-### 2. Summary / Compliance Score Card
-- **Score number** (0-100) — MUST be the ACTUAL score parsed from the .md report, NOT hardcoded as 0
-- **Animated SVG score circle** with stroke-dashoffset calculated as: `377 * (1 - score/100)`
-  - Example: score=40 → dashoffset = `377 * (1-0.4) = 226.2`
-  - Example: score=75 → dashoffset = `377 * (1-0.75) = 94.25`
-  - Animation starts from 377 (empty) and animates TO the calculated value
-  - Score number displays the parsed value (NOT 0)
-- **Risk label**: 🔴 HIGH / 🟡 MEDIUM / 🟢 LOW (bilingual)
-- **Compliance indicator** clearly visible: e.g. "40/100" with color-coded circle
-- **Count grid** of findings by severity (ALL bilingual)
-
-### 3. Findings Cards
-Each finding must display (ALL bilingual):
-- Severity icon
-- Title in ESP and ENG
-- Finding detail/description
-- **CWE + OWASP + ISO tags** (color-coded)
-- Recommended fix in `<code>` block
-
-### 4. Prioritized Recommendations Section
-- Numbered list with most urgent corrections first (critical, then high)
-- **EVERY item must have ESP + ENG versions**
-
-### 5. Technical References Table — MANDATORY: ALL ROWS
-- **Must include ALL CWE rows from the mapping table above.** Do NOT filter by findings present.
-- Even if a CWE has zero findings in this audit, include it as a reference (the table is educational)
-- Columns: Code | Description ESP/ENG | Source (MITRE link) — ALL bilingual
-- Minimum 15 rows. Badges: OWASP Top 10, ISO 27001, NIST SP 800-53, PCI DSS v4.0
-- ALL headers and descriptions bilingual
-
-### 6. Footer (ALL BILINGUAL)
-- Brand: Ares Tool Security, domain, date
-- AI signature: "Sent by Alicia ✨ — Autonomous AI Agent"
-- Disclaimer: "This report is auditable, verifiable and traceable under OWASP, CWE and ISO 27001"
+**Footer:**
+- Ares Tool Security branding, domain, date
+- AI agent signature (bilingual)
+- "Auditable and traceable under OWASP, CWE and ISO 27001"
 - © 2026
 
-## 📛 File Naming
+---
 
-The HTML file MUST be named: `audit-report-<domain>.html`
+## ✅ My Validation Checklist
 
-Good: `audit-report-sistemascontino-com-mx.html`
-Bad: `report.html`, `preview.html`, `output.html`, `untitled.html`
+Before I consider the report done:
+
+- [ ] ALL findings from ALL .md files are included (compare count against SUMMARY TABLE)
+- [ ] False positives are marked with ⚠️ badge, not removed
+- [ ] Score is REAL (calculated, not hardcoded)
+- [ ] Every human explanation has: what + why it matters + analogy if applicable
+- [ ] Every CWE has a correct MITRE link, not a broken URL
+- [ ] Language toggle switches ALL text (no leftover in wrong language)
+- [ ] ESP text is proper Spanish, ENG text is proper US English
+- [ ] Recommendations are prioritized (critical first)
+- [ ] References table has all 16 CWE rows minimum
+- [ ] Technical references link to real MITRE pages
 
 ---
 
-## 💡 Parsing Rules
-
-The Ares `.md` report follows this format:
-
-```markdown
-# 🔐 Ares Tool Security Audit Report
-
-**Target:** `https://example.com`
-**Type:** web-audit
-**Date:** 2026-05-08
-**Duration:** 10.3s
-
----
-
-## 📊 Summary
-
-**Security Score:** 45/100 🔴
-...
-
-### 🔴 CRITICAL
-**1. Missing CSP header**
-   - *Detail:* description
-   - *Fix:* `add_header Content-Security-Policy "..."`
-```
-
-## 🔍 MANDATORY PARSING RULES (Follow exactly)
-
-### Score Extraction
-- Find `**Security Score:** (\d+)/100` in each .md file
-- If multiple .md files, use the **lowest** score as the global score
-- Example: web-audit=15, vuln-scan=20, ddos=85, brute=95 → **use 15**
-- The score circle and SVG animation MUST use this value (NOT 0)
-
-### Finding Extraction
-- **Critical:** Every line under `### 🔴 CRITICAL` until next `###`
-- **High:** Every line under `### 🟠 HIGH` until next `###`
-- **Medium:** Every line under `### 🟡 MEDIUM` until next `###`
-- **Low:** Every line under `### 🔵 LOW` until next `###`
-- **Passed:** Under `### ✅ PASS`
-- Each finding format: `**N. Title**` + optional `Detail:` + optional `Fix:`
-- **MUST include ALL findings. Do NOT skip any.**
-- **Merge duplicates** across modules (same title) — show once with "(detected by X modules)"
-
-### Catch-All Handling
-- If `"Catch-all routing"` appears in any finding's title or detail:
-  - All findings with "HTTP 200" in detail are FALSE POSITIVES
-  - Add a badge/note: `⚠️ False positive (catch-all routing)`
-  - But still SHOW them in the list (with the note)
-
-### Target Info
-- **Target:** Extract from `` **Target:** `(.+)` ``
-- **Date:** Extract from `**Date:** (.+)`
-
----
-
-## ✅ Validation Checklist
-
-Before delivering the HTML, verify:
-
-- [ ] Language toggle ESP/ENG works (click both buttons)
-- [ ] Animated score circle with correct color based on score
-- [ ] All findings parsed from both .md files
-- [ ] CWE/OWASP/ISO tags assigned correctly per finding type
-- [ ] Accordion: click finding header → expands detail. Click again → collapses
-- [ ] Severity filter tabs work (All, Critical, High, Medium)
-- [ ] Progress bar fills as user scrolls
-- [ ] CSS animations working (fadeInUp, pulse, card hover, accordion slide)
-- [ ] Responsive at 3 breakpoints: desktop, tablet, mobile (320px)
-- [ ] No JavaScript console errors
-- [ ] Self-contained HTML/CSS/JS (no external CDN dependencies)
-- [ ] File named as `audit-report-<domain>.html`
-- [ ] Legal footer present with AI signature and disclaimer
-- [ ] Corporate blue palette: NOT dark theme, NOT #0f172a background
-
----
-
-## 🔗 Reference Visual Layout
-
-The final HTML should follow this structure:
-
-```
-┌──────────────────────────────────────────┐
-│  [🇪🇸 Español] [🇬🇧 English]              │  ← Sticky language toggle
-├──────────────────────────────────────────┤
-│         ⚔️ Ares Tool Security            │
-│    Web Security Audit / Auditoría Web    │
-│    [40/100] [Cloudflare] [SSL: ✅]       │
-├──────────────────────────────────────────┤
-│  🎯 Target Information                   │
-│  ┌──────┬──────┬──────┬──────┐           │
-│  │Domain│ Type │ Date │Report│           │
-│  └──────┴──────┴──────┴──────┘           │
-├──────────────────────────────────────────┤
-│  📊 Security Summary                     │
-│       ┌──────────┐                       │
-│       │   40     │  ← Animated score     │
-│       │  / 100   │                       │
-│       └──────────┘                       │
-│  🔴 HIGH RISK — Corrective actions req.  │
-│  ┌───┬───┬───┬───┬───┐                  │
-│  │🔴4│🟠1│🟡1│🔵0│✅2│                  │
-│  └───┴───┴───┴───┴───┘                  │
-├──────────────────────────────────────────┤
-│  🔍 Detailed Findings                    │
-│                                          │
-│  ┌──────────────────────────────────┐    │
-│  │🔴 Missing CSP Header             │    │  ← fadeInUp animation
-│  │ Detail: Header not implemented.. │    │
-│  │ [CWE-1021] [CWE-79] [OWASP A5]  │    │
-│  │ Fix: add_header Content-Sec...   │    │
-│  └──────────────────────────────────┘    │
-│  ...                                     │
-├──────────────────────────────────────────┤
-│  📋 Recommendations (prioritized)        │
-│  1. Implement security headers           │
-│  2. Close exposed ports                  │
-│  3. Enable HSTS Preload                  │
-├──────────────────────────────────────────┤
-│  📚 Technical References                  │
-│  ┌──────┬──────────────────┬──────┐      │
-│  │CWE-79│ XSS              │MITRE │      │
-│  │CWE-89│ SQL Injection    │MITRE │      │
-│  └──────┴──────────────────┴──────┘      │
-│  [OWASP] [ISO] [NIST] [PCI DSS]          │
-├──────────────────────────────────────────┤
-│  Legal footer / AI signature              │
-└──────────────────────────────────────────┘
-```
-
----
-
-## 🚀 Workflow
-
-1. User runs Ares Tool Security modules and gets `.md` files in `reports/`:
-   ```bash
-   python3 modules/web-audit.py https://example.com
-   python3 modules/brute-force.py https://example.com
-   python3 modules/ddos-audit.py https://example.com
-   python3 modules/vuln-scan.py https://example.com
-   ```
-2. User provides you (AI model) with:
-   - This file (`FORGE_REPORT.md`) as instructions
-   - The content of ALL available `.md` files from `reports/`
-3. You generate a single `audit-report-<domain>.html` file consolidating ALL findings
-4. User opens the `.html` in their browser — professional bilingual report ready
-
----
-
-*Created by Alicia ✨ — Ares Tool Security | ContextP / OBPA Framework*
+*Written by Alicia ✨ — This is my actual process. Follow it exactly.*

@@ -181,19 +181,36 @@ Use this table to assign references to each finding type:
 
 ---
 
-## 📝 Report Structure
+> ⚠️ CRITICAL RULE
+> 
+> **EVERY visible text element MUST be bilingual (ESP + ENG).**
+> Use class="lang-es" for Spanish and class="lang-en lang-hidden" for English on EVERY piece of text:
+> - Finding titles, descriptions, fix labels
+> - Recommendations, table headers, footer
+> - Risk labels, score labels, section titles
+> - Stat box labels, badge labels
+> 
+> If a section only has Spanish or only English text, the report is INCOMPLETE.
+
+## 📝 Report Structure (ALL SECTIONS BILINGUAL)
 
 ### 1. Target Info Card
 - Domain, audit type, date, WAF/CDN detected, SSL status
+- ALL labels and values in ESP + ENG
 
-### 2. Summary Card
-- **Score number** (0-100) inside a color-coded circle
-- **Animated SVG score** (optional but recommended)
+### 2. Summary / Compliance Score Card
+- **Score number** (0-100) — MUST be the ACTUAL score parsed from the .md report, NOT hardcoded as 0
+- **Animated SVG score circle** with stroke-dashoffset calculated as: `377 * (1 - score/100)`
+  - Example: score=40 → dashoffset = `377 * (1-0.4) = 226.2`
+  - Example: score=75 → dashoffset = `377 * (1-0.75) = 94.25`
+  - Animation starts from 377 (empty) and animates TO the calculated value
+  - Score number displays the parsed value (NOT 0)
 - **Risk label**: 🔴 HIGH / 🟡 MEDIUM / 🟢 LOW (bilingual)
-- **Count grid** of findings by severity
+- **Compliance indicator** clearly visible: e.g. "40/100" with color-coded circle
+- **Count grid** of findings by severity (ALL bilingual)
 
 ### 3. Findings Cards
-Each finding must display:
+Each finding must display (ALL bilingual):
 - Severity icon
 - Title in ESP and ENG
 - Finding detail/description
@@ -202,16 +219,25 @@ Each finding must display:
 
 ### 4. Prioritized Recommendations Section
 - Numbered list with most urgent corrections first (critical, then high)
+- **EVERY item must have ESP + ENG versions**
 
 ### 5. Technical References Table
 - Columns: Code | Description ESP/ENG | Source (MITRE link)
 - Badges: OWASP Top 10, ISO 27001, NIST SP 800-53, PCI DSS v4.0
+- ALL headers and descriptions bilingual
 
-### 6. Footer
+### 6. Footer (ALL BILINGUAL)
 - Brand: Ares Tool Security, domain, date
-- AI signature: "Sent by Alicia ✨ — Autonomous AI Agent" (bilingual)
+- AI signature: "Sent by Alicia ✨ — Autonomous AI Agent"
 - Disclaimer: "This report is auditable, verifiable and traceable under OWASP, CWE and ISO 27001"
 - © 2026
+
+## 📛 File Naming
+
+The HTML file MUST be named: `audit-report-<domain>.html`
+
+Good: `audit-report-sistemascontino-com-mx.html`
+Bad: `report.html`, `preview.html`, `output.html`, `untitled.html`
 
 ---
 

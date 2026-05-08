@@ -76,9 +76,34 @@ Debe cumplir **TODOS** los siguientes requisitos:
 - Al cargar la página, las `.card` deben aparecer con `animation: fadeInUp 0.4s ease-out`.
 - Al hacer clic en el botón PDF, mostrar un spinner de Bootstrap.
 
+#### 4.2b – Reglas @media print (PDF sin sombras)
+Agrega este bloque dentro de `<style>` para que el PDF se genere sin sombras ni artefactos:
+
+```css
+@media print {
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+  .btn-pdf, .lang-toggle {
+    display: none !important;
+  }
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .finding-body {
+    display: block !important;
+  }
+}
+```
+
 #### 4.3 – Botón PDF
 - Un botón flotante o en el header: `📄 Guardar como PDF`.
-- Al hacer clic, capturar el `div` con id `report-content` (excluyendo el botón PDF y el toggle de idioma) y generar PDF en horizontal (opcional) con `html2pdf()`.
+- Al hacer clic, **desactivar el botón y quitarle el foco** con `.blur()` para evitar que el estado :focus se capture.
+- Capturar el `div` con id `report-content` (excluyendo el botón PDF y el toggle de idioma).
+- Opciones de html2pdf: `{ margin: 0.5, filename: 'reporte.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' } }`.
+- Importante: `html2canvas` NO debe capturar sombras ni botones de interacción.
 
 #### 4.4 – Selector de idioma
 - Dos botones: `🇪🇸 Español` y `🇬🇧 English`.
@@ -153,6 +178,8 @@ Todas las filas deben tener enlace a `https://cwe.mitre.org/data/definitions/[CW
 ## 📦 LISTA DE VERIFICACIÓN FINAL (el modelo debe auto-validarse)
 - [ ] Se usó Bootstrap 5.3 y animación fade-in.
 - [ ] Hay botón PDF funcional (con html2pdf).
+- [ ] `@media print` bloquea sombras y oculta botones de interacción.
+- [ ] Antes de capturar PDF, se ejecuta `.blur()` en el botón para evitar sombreado por `:focus`.
 - [ ] El toggle español/inglés cambia todos los textos.
 - [ ] El score final se calculó con la fórmula `(promedio + mínimo)/2`.
 - [ ] Los falsos positivos tienen badge ⚠️ y no afectan el conteo de severidades.

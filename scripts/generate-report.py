@@ -15,7 +15,7 @@ def parse_md(filepath):
     target_m = re.search(r'`([^`]+)`', text)
     target = target_m.group(1) if target_m else "Unknown"
 
-    score_m = re.search(r'Score:\s*(\d+)/100', text)
+    score_m = re.search(r'\*\*Security Score:\*\*\s*(\d+)/100', text)
     score = int(score_m.group(1)) if score_m else 0
 
     type_m = re.search(r'Type:\s*(\S+)', text)

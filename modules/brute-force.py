@@ -121,7 +121,7 @@ class BruteForceTest:
                 found_2fa = True
             elif status_code == 200 and is_catch_all:
                 print(f"    {'⏭️':<4} {path} → HTTP 200 (catch-all, skipping)")
-            elif status_code and status_code < 500:
+            elif isinstance(status_code, int) and status_code < 500:
                 print(f"    {'ℹ️':<4} {path} → HTTP {status_code}")
 
         if not found_2fa:

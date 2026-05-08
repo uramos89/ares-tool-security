@@ -48,7 +48,43 @@ Ares detecta automáticamente servidores con **catch-all routing** (que devuelve
 
 ## 📊 Reportes
 
-Todos los reportes se generan en `reports/` como `.md` con scoring y severidades.
+### Formato Markdown (.md)
+
+Todos los reportes se generan en `reports/` como `.md` con scoring, severidades y recomendaciones.
+
+### Formato HTML Profesional (vía IA)
+
+Usa el archivo [`docs/FORGE_REPORT.md`](docs/FORGE_REPORT.md) como prompt universal para CUALQUIER modelo de IA (ChatGPT, Claude, Gemini, Copilot) y obtén un reporte HTML profesional con:
+
+- 🎨 **Tema oscuro** con diseño responsive (desktop, tablet, móvil)
+- 🌐 **Toggle ESP 🇪🇸 / ENG 🇬🇧** funcional — cambia el idioma sin recargar
+- ✨ **Animaciones CSS** — fadeInUp, score circle pulse, hover en cards
+- 📊 **Score circle animado** con color según nivel de riesgo
+- 🔍 **Cada hallazgo** con tags CWE, OWASP e ISO 27001 mapeados automáticamente
+- 📋 **Recomendaciones priorizadas** (críticos y altos primero)
+- 📚 **Tabla de referencias técnicas** con links a MITRE
+- ⚖️ **Footer legal auditable** — trazable bajo OWASP, CWE e ISO 27001
+- 📱 **100% responsive** — clamp en fonts, grid auto-fit, media queries
+
+#### Cómo generar el HTML
+
+```bash
+# 1. Auditar el sitio
+python3 modules/web-audit.py https://ejemplo.com
+python3 modules/vuln-scan.py https://ejemplo.com
+
+# 2. Abrir ChatGPT/Claude/Gemini y pegar:
+#    - El contenido de docs/FORGE_REPORT.md
+#    - El contenido de ambos .md de reports/
+#    - Pedir: "Genera el reporte HTML profesional"
+#    → La IA devuelve el .html listo para abrir en el navegador
+```
+
+O usa el **generador nativo** (si prefieres no depender de una IA externa):
+
+```bash
+python3 lib/report-html.py reports/web-audit-*.md -o reporte.html
+```
 
 ## 📂 Estructura
 
@@ -60,11 +96,16 @@ ares-tool-security/
 │   ├── brute-force.py  ← Rate limiting, lockout, DDoS resilience, 2FA
 │   ├── ddos-audit.py   ← WAF/CDN, concurrent load, timeout
 │   └── vuln-scan.py    ← CSRF, XSS, SQLi, CORS, open redirect, info leak
-├── lib/                ← Librerías (reporter, emailer, colors)
+├── lib/                ← Librerías
+│   ├── reporter.py     ← Generador de reportes .md con scoring
+│   ├── report-html.py  ← Conversor .md → .html profesional
+│   ├── emailer.py      ← Envío de reportes por correo SMTP
+│   └── colors.sh       ← Colores para terminal
 ├── tests/              ← Tests unitarios
-├── reports/            ← Reportes generados (.md)
+├── reports/            ← Reportes generados (.md / .html)
 ├── scrum/              ← Metodología ágil
-└── docs/               ← Documentación
+└── docs/
+    └── FORGE_REPORT.md ← Prompt universal para generar HTML vía IA
 ```
 
 ## 🤝 Contribuir

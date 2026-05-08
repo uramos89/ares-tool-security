@@ -359,3 +359,10 @@ class VulnScan:
 
         if not disclosures:
             print(f"    {'✅':<4} No obvious information leaks")
+
+
+if __name__ == "__main__":
+    target = sys.argv[1] if len(sys.argv) > 1 else input("Target URL/IP: ")
+    audit = VulnScan(target)
+    report_path = audit.run()
+    print(f"\n  Report: {report_path}")

@@ -10,16 +10,18 @@
 
 Generate a `audit-report-<domain>.html` file with:
 
-- **Professional dark theme** (slate/dark blue: `#0f172a`, cards: `#1e293b`, borders: `#334155`)
-- **Bilingual language toggle** ESP 🇪🇸 / ENG 🇬🇧 — switches all content without page reload
-- **CSS animations** (fadeInUp, score circle pulse, card hover elevation)
-- **Animated score circle** with circular fill effect (CSS radial-gradient or SVG circle with stroke-dashoffset animation)
+- **Corporate blue theme** inspired by Sistemas Contino palette: `#f0f4f8` (page bg), `#ffffff` (cards), `#005095` (primary blue), `#0094ff` (accent), `#012346` (dark). Soft light blue background, NOT dark slate.
+- **Bilingual language toggle** ESP 🇪🇸 / ENG 🇬🇧 — switches ALL content without page reload
+- **Interactive accordion for findings**: each finding header is clickable. Click to expand/collapse the detail + fix. Saves space, makes report scannable.
+- **Progress bar** at top of page: thin colored bar that fills as user scrolls (reading progress indicator)
+- **Severity filter tabs**: sticky tabs "All | 🔴 Critical | 🟠 High | 🟡 Medium" — click to filter findings by severity
+- **CSS animations** (fadeInUp, score circle pulse, card hover elevation, accordion slide transition)
+- **Animated score circle** with SVG circle + stroke-dashoffset animation
 - **Responsive design** (clamp fonts, auto-fit grid, mobile media queries down to 320px)
-- **Severity badges** with distinctive colors for each level
 - **CWE + OWASP + ISO 27001** references auto-mapped per finding
 - **Technical references table** with links to MITRE
 - **Prioritized recommendations** (critical and high first)
-- **Auditable legal footer** with AI agent signature
+- **Auditable legal footer** with AI agent signature (bilingual)
 
 ---
 
@@ -68,10 +70,21 @@ Consolidate findings from ALL available .md files into a single HTML report. Mer
 ### CSS Palette
 
 ```css
-/* Palette */
-body    { background: #0f172a; color: #e2e8f0; }
-.card   { background: #1e293b; border: 1px solid #334155; }
-.stat-box { background: #0f172a; }
+/* Corporate Blue Palette (sistemascontino.com.mx inspired) */
+:root {
+  --page-bg:    #f0f4f8;
+  --card-bg:    #ffffff;
+  --text-main:  #1e293b;
+  --text-dim:   #64748b;
+  --primary:    #005095;
+  --primary-light: #e8f0fe;
+  --accent:     #0094ff;
+  --dark:       #012346;
+  --border:     #d1d9e6;
+}
+body    { background: var(--page-bg); color: var(--text-main); }
+.card   { background: var(--card-bg); border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.stat-box { background: var(--primary-light); border: 1px solid var(--border); }
 
 /* Score Circle */
 .score-circle {
@@ -88,15 +101,18 @@ body    { background: #0f172a; color: #e2e8f0; }
 }
 /* Score color: <50: #dc2626, 50-79: #d97706, >=80: #16a34a */
 
-/* Severity colors */
+/* Severity colors (same for light theme, stronger contrast) */
 .critical: #dc2626 | .high: #ea580c | .medium: #d97706
 .low: #2563eb | .pass: #16a34a
 
-/* Finding cards: colored left border + translucent background */
+/* Finding cards: colored left border + very light background */
 .finding-{severity} {
   border-left: 4px solid <color>;
-  background: rgba(<color_rgb>, 0.15);
+  background: rgba(<color_rgb>, 0.05);
 }
+
+/* Score circle color based on score */
+.score-fill { stroke: <color>; } /* <50: #dc2626, 50-79: #d97706, >=80: #16a34a */
 ```
 
 ### CSS Animations
@@ -119,6 +135,89 @@ body    { background: #0f172a; color: #e2e8f0; }
 
 /* Card hover */
 .card:hover { transform: translateY(-2px); box-shadow: 0 8px 12px rgba(0,0,0,0.4); }
+
+/* Accordion */
+.finding { cursor: pointer; transition: all 0.3s; }
+.finding-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+.finding-body { display: none; margin-top: 12px; animation: fadeInUp 0.3s ease-out; }
+.finding.expanded .finding-body { display: block; }
+.expand-icon { transition: transform 0.3s; }
+.finding.expanded .expand-icon { transform: rotate(180deg); }
+
+/* Filter bar */
+.filter-bar { display: flex; gap: 8px; padding: 10px 0; background: var(--page-bg); border-bottom: 1px solid var(--border); }
+.filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.85rem; transition: 0.2s; }
+.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+/* Progress bar */
+#progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); width: 0%; z-index: 1001; transition: width 0.2s; }
+```
+
+### Progress Bar (Scrolling Progress)
+
+```html
+<div id="progress-bar" style="position:fixed;top:0;left:0;height:3px;background:var(--accent);width:0%;z-index:1001;transition:width 0.2s;"></div>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  document.getElementById('progress-bar').style.width = (window.scrollY / h * 100) + '%';
+});
+</script>
+```
+
+### Severity Filter Tabs
+
+Sticky tabs below the language toggle that filter findings by severity:
+
+```html
+<div class="filter-bar" style="position:sticky;top:50px;z-index:1000;">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="critical">🔴 Critical</button>
+  <button class="filter-btn" data-filter="high">🟠 High</button>
+  <button class="filter-btn" data-filter="medium">🟡 Medium</button>
+</div>
+
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    document.querySelectorAll('.finding').forEach(f => {
+      f.style.display = (filter === 'all' || f.classList.contains(filter)) ? 'block' : 'none';
+    });
+  });
+});
+</script>
+```
+
+### Accordion Findings (Click to Expand)
+
+Each finding card becomes a clickable accordion. Default: collapsed (shows only title + severity). Click to expand detail + fix + CWE tags.
+
+```html
+<div class="finding critical" onclick="this.classList.toggle('expanded')">
+  <div class="finding-header">
+    🔴 Missing CSP Header
+    <span class="expand-icon">▼</span>
+  </div>
+  <div class="finding-body" style="display:none;">
+    <p>Detail description</p>
+    <div class="tags">...</div>
+    <code>Fix command</code>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.finding').forEach(el => {
+  el.querySelector('.finding-header').addEventListener('click', () => {
+    el.classList.toggle('expanded');
+    const body = el.querySelector('.finding-body');
+    body.style.display = body.style.display === 'none' ? 'block' : 'none';
+  });
+});
+</script>
 ```
 
 ### Bilingual Language Toggle (JavaScript)
@@ -290,12 +389,16 @@ Before delivering the HTML, verify:
 - [ ] Animated score circle with correct color based on score
 - [ ] All findings parsed from both .md files
 - [ ] CWE/OWASP/ISO tags assigned correctly per finding type
-- [ ] CSS animations working (fadeInUp, pulse, card hover)
+- [ ] Accordion: click finding header → expands detail. Click again → collapses
+- [ ] Severity filter tabs work (All, Critical, High, Medium)
+- [ ] Progress bar fills as user scrolls
+- [ ] CSS animations working (fadeInUp, pulse, card hover, accordion slide)
 - [ ] Responsive at 3 breakpoints: desktop, tablet, mobile (320px)
 - [ ] No JavaScript console errors
 - [ ] Self-contained HTML/CSS/JS (no external CDN dependencies)
 - [ ] File named as `audit-report-<domain>.html`
 - [ ] Legal footer present with AI signature and disclaimer
+- [ ] Corporate blue palette: NOT dark theme, NOT #0f172a background
 
 ---
 

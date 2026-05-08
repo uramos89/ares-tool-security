@@ -43,10 +43,7 @@ class BruteForceTest:
         return False
 
     def run(self) -> str:
-        login_path = input("  Login endpoint (default: /api/login): ").strip()
-        if not login_path:
-            login_path = "/api/login"
-
+        login_path = "/api/login"
         self.target = self.target.rstrip("/")
         login_url = f"{self.target}{login_path}"
         print(f"\n  🔨 Brute Force Test — {login_url}")

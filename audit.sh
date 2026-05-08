@@ -14,11 +14,13 @@ main_menu() {
         print_banner
         echo -e "${cyan}Target:${reset} ${bold}$TARGET${reset}${dimtext} (use 'set' to change)${reset}"
         echo ""
-        echo -e "  ${bold}[1]${reset}  🌐  ${label}Web Audit${reset}        — SSL, headers, stack, ports"
-        echo -e "  ${bold}[2]${reset}  🔨  ${label}Brute Force Test${reset} — Rate limiting, lockout, 2FA"
-        echo -e "  ${bold}[3]${reset}  🖥️   ${label}System Audit${reset}    — SSH, users, files, secrets"
-        echo -e "  ${bold}[4]${reset}  🐳  ${label}Docker Audit${reset}     — Containers, images, mounts"
-        echo -e "  ${bold}[5]${reset}  📋  ${label}Full Scan${reset}        — Todo en un solo comando"
+        echo -e "  ${bold}[1]${reset}  🌐  ${label}Web Audit${reset}        — SSL, headers, stack, dir busting, forms, cookies, CORS"
+        echo -e "  ${bold}[2]${reset}  🔨  ${label}Brute Force${reset}     — Rate limiting, lockout, DDoS resilience, 2FA"
+        echo -e "  ${bold}[3]${reset}  🛡️  ${label}DDoS Audit${reset}      — WAF/CDN detection, concurrent load, timeout"
+        echo -e "  ${bold}[4]${reset}  🎯  ${label}Vuln Scan${reset}       — XSS, SQLi, CORS, open redirect, info disclosure"
+        echo -e "  ${bold}[5]${reset}  📋  ${label}Full Scan${reset}       — Todo en un solo comando"
+        echo -e "  ${bold}[6]${reset}  🖥️   ${label}System Audit${reset}   — SSH, users, files, secrets"
+        echo -e "  ${bold}[7]${reset}  🐳  ${label}Docker Audit${reset}    — Containers, images, mounts"
         echo ""
         echo -e "  ${bold}[s]${reset}  ⚙️   ${label}Set Target${reset}      — Cambiar URL/IP objetivo"
         echo -e "  ${bold}[v]${reset}  📈  ${label}View Reports${reset}     — Ver reportes generados"
@@ -28,10 +30,12 @@ main_menu() {
 
         case $choice in
             1) run_module "web-audit" "🌐 Web Audit" ;;
-            2) run_module "brute-force" "🔨 Brute Force Test" ;;
-            3) run_module "system" "🖥️  System Audit" ;;
-            4) run_module "docker" "🐳 Docker Audit" ;;
+            2) run_module "brute-force" "🔨 Brute Force" ;;
+            3) run_module "ddos-audit" "🛡️  DDoS Audit" ;;
+            4) run_module "vuln-scan" "🎯 Vuln Scan" ;;
             5) run_full_scan ;;
+            6) run_module "system" "🖥️  System Audit" ;;
+            7) run_module "docker" "🐳 Docker Audit" ;;
             s|S) set_target ;;
             v|V) view_reports ;;
             q|Q) echo -e "\n${ok}Bye! 🔐${reset}" ; exit 0 ;;
@@ -79,7 +83,7 @@ run_full_scan() {
         set_target
     fi
     
-    for module in web-audit brute-force; do
+    for module in web-audit brute-force ddos-audit vuln-scan; do
         if [ -f "$SCRIPT_DIR/modules/$module.py" ]; then
             echo -e "\n${title}━━━ Running: $module ━━━${reset}"
             python3 "$SCRIPT_DIR/modules/$module.py" "$TARGET"
